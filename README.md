@@ -9,7 +9,7 @@
   - 사용자는 회원가입해서 서비스를 이용한다.
   - 회원가입하면 기본적으로 USER권한(기본 권한)이 부여된다.
   - 회원가입시 아이디는 Email이다.
-  - 회원가입시 인증을 거치며 아이디는 유니크 해야한다.
+  - 회원가입시 이메일 인증을 거치며 아이디는 유니크 해야한다.
  
 - 회원정보 수정 기능
   - 사용자는 로그인 후 회원 정보를 수정할 수 있다.
@@ -52,9 +52,22 @@
 
 
 ## 프로젝트 목표
-1. 경험해보지 못한, 선호도가 높은 기술들을 사용하고 공부한다.
-2. 많은 데이터들을 다뤄볼 수 있게 프로젝트를 확장해보자.
-3. 프로젝트를 완료 후 배포까지 해보자.
+1. 경험해보지 못한, 선호도가 높은 기술들을 사용하고 공부
+2. 많은 데이터들을 다뤄볼 수 있게 프로젝트를 확장(테이블 추가)
+3. 프로젝트를 완료 후 배포
+
+
+## 사용할 라이브러리, 프레임워크
+1. Spring Web
+2. Spring Jpa
+3. Spring Security
+4. JJWT
+5. Mockito
+6. PostgreSQL
+7. Redis
+8. Lombok
+9. Java Mail Sender
+
 
 ## 기술 스택
 <img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=java&logoColor=white"> <img src="https://img.shields.io/badge/spring-6DB33F?style=for-the-badge&logo=spring&logoColor=white"> <img src="https://img.shields.io/badge/postgresql-4169E1?style=for-the-badge&logo=postgresql&logoColor=white"> <img src="https://img.shields.io/badge/git-F05032?style=for-the-badge&logo=git&logoColor=white">
