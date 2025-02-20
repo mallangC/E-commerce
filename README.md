@@ -48,7 +48,7 @@
   - 가나다순, 별점순, 가격순으로 정렬이 가능하다.
  
 ## ERD
-![Image](https://github.com/user-attachments/assets/c8d60a5c-3b97-4bc5-8fdb-83ffe9104517)
+![Image](https://github.com/member-attachments/assets/c8d60a5c-3b97-4bc5-8fdb-83ffe9104517)
 
 
 ## 프로젝트 목표
