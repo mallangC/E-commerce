@@ -20,12 +20,14 @@ public class CustomUserDetailService implements UserDetailsService {
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
     Member member = memberRepository.findByEmail(username)
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_MEMBER));
 
     if (!member.getIsEmailVerified()){
-      throw new CustomException(ErrorCode.NOT_VERIFIED_USER);
+      throw new CustomException(ErrorCode.NOT_VERIFIED_MEMBER);
     }
 
     return new CustomUserDetails(member);
   }
+
+
 }

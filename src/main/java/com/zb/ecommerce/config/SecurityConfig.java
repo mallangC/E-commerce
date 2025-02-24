@@ -5,6 +5,7 @@ import com.zb.ecommerce.exception.CustomAuthenticationEntryPoint;
 import com.zb.ecommerce.security.JWTFilter;
 import com.zb.ecommerce.security.JWTUtil;
 import com.zb.ecommerce.security.LoginFilter;
+import com.zb.ecommerce.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -28,16 +29,14 @@ public class SecurityConfig {
   private final AuthenticationConfiguration authenticationConfiguration;
   private final CustomAccessDeniedHandler customAccessDeniedHandler;
   private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-
   private final JWTUtil jwtUtil;
+  private final RedisService redisService;
 
   @Bean
   public AuthenticationManager authenticationManager(
-          AuthenticationConfiguration configuration) throws Exception
-  {
+          AuthenticationConfiguration configuration) throws Exception {
     return configuration.getAuthenticationManager();
   }
-
 
   @Bean
   public BCryptPasswordEncoder passwordEncoder() {
@@ -49,20 +48,19 @@ public class SecurityConfig {
     http
             .csrf(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
-            .httpBasic(AbstractHttpConfigurer::disable);
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .logout(AbstractHttpConfigurer::disable);
     http
-            .authorizeHttpRequests((auth)->
-                    auth.requestMatchers("/login", "/", "/join","/email-auth").permitAll()
+            .authorizeHttpRequests((auth) ->
+                    auth.requestMatchers("/login", "/", "/join", "/email-auth").permitAll()
                             .anyRequest().authenticated());
-
     http
-            .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class)
+            .addFilterBefore(new JWTFilter(jwtUtil, redisService), LoginFilter.class)
             .addFilterAt(new LoginFilter(
-                    authenticationManager(authenticationConfiguration), jwtUtil),
+                    authenticationManager(authenticationConfiguration), jwtUtil, redisService),
                     UsernamePasswordAuthenticationFilter.class)
-            .sessionManagement((session)->
+            .sessionManagement((session) ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
     http
             .exceptionHandling(e -> e
                     .accessDeniedHandler(customAccessDeniedHandler)

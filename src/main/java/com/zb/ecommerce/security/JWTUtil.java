@@ -1,5 +1,7 @@
 package com.zb.ecommerce.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -11,7 +13,11 @@ import java.util.Date;
 
 @Component
 public class JWTUtil {
-  private SecretKey secretKey;
+  private final SecretKey secretKey;
+  @Value("${jwt.access-token-time}")
+  private Long accessTokenExpiration;
+  @Value("${jwt.refresh-token-time}")
+  private Long refreshTokenExpiration;
 
   public JWTUtil(@Value("${jwt.secretkey}")String secret) {
     secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8),
@@ -19,27 +25,59 @@ public class JWTUtil {
 
   }
 
+
   public String getUsername(String token) {
-    return Jwts.parser().verifyWith(secretKey).build()
-            .parseSignedClaims(token)
-            .getPayload()
-            .get("username",String.class);
+    try{
+      return Jwts.parser().verifyWith(secretKey).build()
+              .parseSignedClaims(token)
+              .getPayload()
+              .get("username",String.class);
+    }catch (ExpiredJwtException e){
+      return e.getClaims().get("username").toString();
+    }catch (JwtException e){
+      return null;
+    }
   }
+
 
   public String getRole(String token) {
-    return Jwts.parser().verifyWith(secretKey).build()
-            .parseSignedClaims(token)
-            .getPayload()
-            .get("role",String.class);
+    try{
+      return Jwts.parser().verifyWith(secretKey).build()
+              .parseSignedClaims(token)
+              .getPayload()
+              .get("role",String.class);
+    }catch (ExpiredJwtException e){
+      return e.getClaims().get("role").toString();
+    }catch (JwtException e){
+      return null;
+    }
   }
 
+
   public Boolean isExpired(String token) {
-    return Jwts.parser().verifyWith(secretKey).build()
-            .parseSignedClaims(token)
-            .getPayload()
-            .getExpiration()
-            .before(new Date());
+    try{
+      return Jwts.parser().verifyWith(secretKey).build()
+              .parseSignedClaims(token)
+              .getPayload()
+              .getExpiration()
+              .before(new Date());
+    }catch (ExpiredJwtException e){
+      return true;
+    }catch (JwtException e){
+      return null;
+    }
   }
+
+
+  public String generateAccessToken(String username, String role) {
+    return createJwt(username, role, accessTokenExpiration);
+  }
+
+
+  public String generateRefreshToken(String username, String role) {
+    return createJwt(username, role, refreshTokenExpiration);
+  }
+
 
   public String createJwt(String username, String role, Long expiredMs){
     return Jwts.builder()

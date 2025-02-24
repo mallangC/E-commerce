@@ -1,5 +1,7 @@
 package com.zb.ecommerce.component;
 
+import com.zb.ecommerce.exception.CustomException;
+import com.zb.ecommerce.exception.ErrorCode;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -14,7 +16,7 @@ public class MailComponent {
 
   private final JavaMailSender mailSender;
 
-  @Async
+  @Async("asyncExecutor")
   public void sendMail(String email, String title, String text) {
 
     MimeMessagePreparator message = new MimeMessagePreparator() {
@@ -30,7 +32,7 @@ public class MailComponent {
       mailSender.send(message);
     }catch (Exception e) {
       e.printStackTrace();
-      System.out.println(e.getMessage());
+      throw new CustomException(ErrorCode.SEND_EMAIL_FAIL);
     }
   }
 }

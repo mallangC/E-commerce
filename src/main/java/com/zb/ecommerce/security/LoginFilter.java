@@ -2,12 +2,14 @@ package com.zb.ecommerce.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zb.ecommerce.domain.form.LoginForm;
+import com.zb.ecommerce.service.RedisService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,9 +27,8 @@ import java.util.Iterator;
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
   private final AuthenticationManager authenticationManager;
-
   private final JWTUtil jwtUtil;
-
+  private final RedisService redisService;
 
   @Override
   public Authentication attemptAuthentication(HttpServletRequest request,
@@ -67,9 +68,11 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     GrantedAuthority auth = iterator.next();
 
     String role = auth.getAuthority();
-    String token = jwtUtil.createJwt(username, role, 60*60*10L);
+    String accessToken = jwtUtil.generateAccessToken(username, role);
+    String refreshToken = jwtUtil.generateRefreshToken(username, role);
+    redisService.setRefreshToken(username, refreshToken);
 
-    response.addHeader("Authorization", "Bearer " + token);
+    response.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
   }
 
   @Override

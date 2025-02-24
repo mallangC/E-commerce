@@ -10,6 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Setter
+@ToString
 public class Member extends BaseEntity{
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,5 +24,4 @@ public class Member extends BaseEntity{
   @Enumerated(EnumType.STRING)
   private MemberType role;
   private Boolean isEmailVerified;
-  private String verificationCode;
 }
