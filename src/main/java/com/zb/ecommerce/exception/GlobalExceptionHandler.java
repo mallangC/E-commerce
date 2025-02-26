@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
     Map<String, String> errors = new HashMap<>();
     e.getBindingResult().getFieldErrors().forEach(error ->
             errors.put(error.getField(), error.getDefaultMessage()));
-    log.error("validException is occurred : {}", e.getMessage());
+    log.info("validException is occurred : {}", e.getMessage());
 
     return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(CustomException.class)
   public ResponseEntity<String> customExceptionHandler(CustomException e) {
-    log.error("CustomException is occurred : {}", e.getMessage());
+    log.info("CustomException is occurred : {}", e.getMessage());
 
     return ResponseEntity
             .status(e.getErrorCode().getHttpStatus())
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<String> exceptionHandler(Exception e) {
-    log.error("Exception is occurred : {}", e.getMessage());
+    log.info("Exception is occurred : {}", e.getMessage());
 
     return ResponseEntity
             .status(HttpStatus.FORBIDDEN)

@@ -19,7 +19,7 @@ public class JWTUtil {
   @Value("${jwt.refresh-token-time}")
   private Long refreshTokenExpiration;
 
-  public JWTUtil(@Value("${jwt.secretkey}")String secret) {
+  public JWTUtil(@Value("${jwt.secretkey}") String secret) {
     secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8),
             Jwts.SIG.HS256.key().build().getAlgorithm());
 
@@ -27,43 +27,43 @@ public class JWTUtil {
 
 
   public String getUsername(String token) {
-    try{
+    try {
       return Jwts.parser().verifyWith(secretKey).build()
               .parseSignedClaims(token)
               .getPayload()
-              .get("username",String.class);
-    }catch (ExpiredJwtException e){
+              .get("username", String.class);
+    } catch (ExpiredJwtException e) {
       return e.getClaims().get("username").toString();
-    }catch (JwtException e){
+    } catch (JwtException e) {
       return null;
     }
   }
 
 
   public String getRole(String token) {
-    try{
+    try {
       return Jwts.parser().verifyWith(secretKey).build()
               .parseSignedClaims(token)
               .getPayload()
-              .get("role",String.class);
-    }catch (ExpiredJwtException e){
+              .get("role", String.class);
+    } catch (ExpiredJwtException e) {
       return e.getClaims().get("role").toString();
-    }catch (JwtException e){
+    } catch (JwtException e) {
       return null;
     }
   }
 
 
   public Boolean isExpired(String token) {
-    try{
+    try {
       return Jwts.parser().verifyWith(secretKey).build()
               .parseSignedClaims(token)
               .getPayload()
               .getExpiration()
               .before(new Date());
-    }catch (ExpiredJwtException e){
+    } catch (ExpiredJwtException e) {
       return true;
-    }catch (JwtException e){
+    } catch (JwtException e) {
       return null;
     }
   }
@@ -79,10 +79,10 @@ public class JWTUtil {
   }
 
 
-  public String createJwt(String username, String role, Long expiredMs){
+  public String createJwt(String username, String role, Long expiredMs) {
     return Jwts.builder()
-            .claim("username",username)
-            .claim("role",role)
+            .claim("username", username)
+            .claim("role", role)
             .issuedAt(new Date(System.currentTimeMillis()))
             .expiration(new Date(System.currentTimeMillis() + expiredMs))
             .signWith(secretKey)

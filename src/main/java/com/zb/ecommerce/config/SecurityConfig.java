@@ -52,7 +52,7 @@ public class SecurityConfig {
             .logout(AbstractHttpConfigurer::disable);
     http
             .authorizeHttpRequests((auth) ->
-                    auth.requestMatchers("/login", "/", "/join", "/email-auth").permitAll()
+                    auth.requestMatchers("/login", "/", "/join", "/email-auth", "/product", "/product/**").permitAll()
                             .anyRequest().authenticated());
     http
             .addFilterBefore(new JWTFilter(jwtUtil, redisService), LoginFilter.class)

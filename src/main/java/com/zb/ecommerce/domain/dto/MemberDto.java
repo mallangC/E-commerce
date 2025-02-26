@@ -18,7 +18,6 @@ public class MemberDto {
   private String phone;
   private String address;
   private String addressDetail;
-  @Enumerated(EnumType.STRING)
   private MemberType role;
   private LocalDateTime createAt;
   private LocalDateTime updateAt;

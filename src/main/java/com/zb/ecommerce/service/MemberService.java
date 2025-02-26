@@ -133,11 +133,12 @@ public class MemberService {
     String password = form.getPassword();
     Member member = findMemberByEmail(tokenEmail);
 
-    if (passwordEncoder.matches(password, member.getPassword())) {
-      memberRepository.deleteByEmail(tokenEmail);
-      redisService.deleteRefreshToken(tokenEmail);
-      return MemberDto.from(member);
-    }else throw new CustomException(NOT_MATCH_PASSWORD);
+    if (!passwordEncoder.matches(password, member.getPassword())) {
+      throw new CustomException(NOT_MATCH_PASSWORD);
+    }
+    memberRepository.deleteByEmail(tokenEmail);
+    redisService.deleteRefreshToken(tokenEmail);
+    return MemberDto.from(member);
   }
 
 

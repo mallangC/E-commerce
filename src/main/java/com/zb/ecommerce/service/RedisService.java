@@ -13,24 +13,24 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 public class RedisService {
-  private final RedisTemplate<String, Object> redisTemplate;
+  private final RedisTemplate<String, String> redisTemplate;
 
   // 레디스에 이메일 & 인증 코드 저장
   public void setCode(String email, String code) {
-    ValueOperations<String, Object> valueOperations =
+    ValueOperations<String, String> valueOperations =
             redisTemplate.opsForValue();
     valueOperations.set(email, code, 180, TimeUnit.SECONDS);
   }
 
   // 이메일로 레디스에 저장된 인증 코드 가져오기
   public String getCode(String email) {
-    ValueOperations<String, Object> valueOperations =
+    ValueOperations<String, String> valueOperations =
             redisTemplate.opsForValue();
-    Object code = valueOperations.get(email);
+    String code = valueOperations.get(email);
     if (code == null) {
       throw new CustomException(ErrorCode.EXPIRED_VERIFY_EMAIL);
     }
-    return code.toString();
+    return code;
   }
 
   public void setLogoutToken(String accessToken) {
