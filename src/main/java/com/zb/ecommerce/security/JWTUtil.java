@@ -22,7 +22,6 @@ public class JWTUtil {
   public JWTUtil(@Value("${jwt.secretkey}") String secret) {
     secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8),
             Jwts.SIG.HS256.key().build().getAlgorithm());
-
   }
 
 

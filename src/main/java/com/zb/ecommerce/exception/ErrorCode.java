@@ -25,6 +25,17 @@ public enum ErrorCode {
   SEND_EMAIL_FAIL(HttpStatus.BAD_REQUEST, "이메일 전송에 실패했습니댜."),
   NOT_ALLOW_BLANK(HttpStatus.BAD_REQUEST, "이메일값이 비어있습니다."),
 
+
+
+  ALREADY_ADDED_PRODUCT(HttpStatus.BAD_REQUEST, "이미 추가된 상품입니다."),
+  NOT_FOUND_PRODUCT(HttpStatus.BAD_REQUEST, "상품을 찾을 수 없습니다."),
+  ALREADY_ADDED_SIZE(HttpStatus.BAD_REQUEST, "이미 추가된 사이즈입니다."),
+  NOT_FOUND_SIZE(HttpStatus.BAD_REQUEST, "해당 사이즈를 찾을 수 없습니다."),
+  NOT_ENOUGH_PRODUCT(HttpStatus.BAD_REQUEST, "상품 갯수가 충분하지 않습니다."),
+
+
+  NOT_FOUND_CART_PRODUCT(HttpStatus.BAD_REQUEST, "카트에 담긴 상품을 찾을 수 없습니다."),
+
   ;
 
   private final HttpStatus httpStatus;

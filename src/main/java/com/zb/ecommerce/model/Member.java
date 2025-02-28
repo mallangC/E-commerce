@@ -4,6 +4,8 @@ import com.zb.ecommerce.domain.type.MemberType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -25,4 +27,6 @@ public class Member extends BaseEntity{
   @Enumerated(EnumType.STRING)
   private MemberType role;
   private Boolean isEmailVerified;
+  @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+  private List<CartProduct> cart;
 }
