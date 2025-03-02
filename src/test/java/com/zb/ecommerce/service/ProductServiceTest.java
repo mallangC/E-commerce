@@ -18,7 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,6 @@ import java.util.Optional;
 
 import static com.zb.ecommerce.exception.ErrorCode.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -51,7 +49,7 @@ class ProductServiceTest {
           .code("shoes_mk1")
           .description("너무나 이쁜 신발")
           .price("89000")
-          .category("shoes")
+          .category(CategoryType.SHOES)
           .build();
 
   ProductDetailAddForm detailAddForm = ProductDetailAddForm.builder()
@@ -163,62 +161,7 @@ class ProductServiceTest {
     }
   }
 
-  //---------
-
-  @Test
-  @DisplayName("모든 상품 확인")
-  void getAllProduct() {
-    //given
-    Sort sort = Sort.by(Sort.Direction.ASC, "name");
-    Pageable pageable = PageRequest.of(0, 20, sort);
-    Page<Product> expectedPage = new PageImpl<>(List.of(Product.builder()
-            .name("신발")
-                    .price(89000L)
-            .details(List.of(ProductDetail.builder()
-                    .size("M")
-                    .quantity(3)
-                    .build()))
-            .build(),
-            Product.builder()
-                    .name("코트")
-                    .price(120000L)
-                    .details(new ArrayList<>())
-                    .build(),
-            Product.builder()
-                    .name("벨트")
-                    .price(32000L)
-                    .details(List.of(ProductDetail.builder()
-                            .size("L")
-                            .quantity(0)
-                            .build()))
-                    .build()
-            ), pageable, 0);
-    given(productRepository.findAll(pageable))
-            .willReturn(expectedPage);
-    //when
-    List<String> result = productService.getAllProduct(0);
-    //then
-    assertEquals(List.of("신발 : 89,000", "(품절)코트 : 120,000", "(품절)벨트 : 32,000"), result);
-    verify(productRepository, times(1)).findAll(pageable);
-  }
-
-  @Test
-  @DisplayName("모든 상품 확인 (찾을 상품이 없음)")
-  void getAllProductFailure1() {
-    //given
-    Sort sort = Sort.by(Sort.Direction.ASC, "name");
-    Pageable pageable = PageRequest.of(0, 20, sort);
-    Page<Product> expectedPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
-    given(productRepository.findAll(pageable))
-            .willReturn(expectedPage);
-    //when
-    List<String> result = productService.getAllProduct(0);
-    //then
-    assertNull(result);
-    verify(productRepository, times(1)).findAll(pageable);
-  }
-
-  //-----------
+  //-------
 
   @Test
   @DisplayName("디테일 확인")
@@ -261,89 +204,7 @@ class ProductServiceTest {
     assertEquals(new ArrayList<>(), result.getDetails());
   }
 
-  //---------
-
-  @Test
-  @DisplayName("모든 상품 확인(이름 정렬)(test에선 정렬이 되진 않음)")
-  void getAllProductSort() {
-    //given
-    Sort sort = Sort.by(Sort.Direction.DESC, "name");
-    Pageable pageable = PageRequest.of(0, 20, sort);
-    Page<Product> expectedPage = new PageImpl<>(List.of(Product.builder()
-                    .name("신발")
-                    .price(89000L)
-                    .details(List.of(ProductDetail.builder()
-                            .size("M")
-                            .quantity(3)
-                            .build()))
-                    .build(),
-            Product.builder()
-                    .name("코트")
-                    .price(120000L)
-                    .details(new ArrayList<>())
-                    .build(),
-            Product.builder()
-                    .name("벨트")
-                    .price(32000L)
-                    .details(List.of(ProductDetail.builder()
-                            .size("L")
-                            .quantity(0)
-                            .build()))
-                    .build()
-    ), pageable, 0);
-    given(productRepository.findAll(pageable))
-            .willReturn(expectedPage);
-    //when
-    List<String> result = productService.getAllProductSort(0, "name", false);
-    //then
-    assertEquals(List.of("신발 : 89,000원", "코트 : 120,000원", "벨트 : 32,000원"),result);
-  }
-
-  //--------
-
-  @Test
-  @DisplayName("모든 상품 확인(카테고리 정렬)")
-  void getAllProductSortCategory() {
-    //given
-    Sort sort = Sort.by(Sort.Direction.ASC, "name");
-    Pageable pageable = PageRequest.of(0, 20, sort);
-    Page<Product> expectedPage = new PageImpl<>(List.of(Product.builder()
-            .name("벨트")
-            .categoryType(CategoryType.BELT)
-            .price(32000L)
-            .details(List.of(ProductDetail.builder()
-                    .size("L")
-                    .quantity(0)
-                    .build()))
-            .build()
-
-    ), pageable, 0);
-
-    given(productRepository.findAllByCategoryType(CategoryType.BELT, pageable))
-            .willReturn(expectedPage);
-    //when
-    List<String> result = productService.getAllProductSortCategory(0, "belt");
-    //then
-    assertEquals(List.of("벨트 : 32,000원"),result);
-  }
-
-  @Test
-  @DisplayName("모든 상품 확인(카테고리 정렬)(해당 카테고리 상품이 없음)")
-  void getAllProductSortCategory2() {
-    //given
-    Sort sort = Sort.by(Sort.Direction.ASC, "name");
-    Pageable pageable = PageRequest.of(0, 20, sort);
-    Page<Product> expectedPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
-
-    given(productRepository.findAllByCategoryType(CategoryType.BELT, pageable))
-            .willReturn(expectedPage);
-    //when
-    List<String> result = productService.getAllProductSortCategory(0, "belt");
-    //then
-    assertEquals(new ArrayList<>(),result);
-  }
-
-  //--------
+  //-------
 
   @Test
   @DisplayName("상품 수정")
@@ -520,7 +381,7 @@ class ProductServiceTest {
     verify(productRepository, times(1)).deleteByCode(anyString());
   }
 
-//-----
+  //-----
 
   @Test
   @DisplayName("상품 디테일 삭제")

@@ -3,6 +3,7 @@ package com.zb.ecommerce.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -13,6 +14,16 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<String> httpMessageNotReadableExceptionHandler(HttpMessageNotReadableException e) {
+    log.info("HttpMessageNotReadableException is occurred : {}", e.getMessage());
+
+    return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body("카테고리 타입을 확인해주세요");
+  }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Map<String, String>> validException(MethodArgumentNotValidException e) {

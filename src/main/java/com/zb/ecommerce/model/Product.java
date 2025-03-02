@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Setter
-public class Product extends BaseEntity{
+public class Product extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -28,13 +28,12 @@ public class Product extends BaseEntity{
   @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<ProductDetail> details;
 
-  public static Product from(ProductAddForm form){
-    CategoryType categoryTypeFromForm = CategoryType.fromString(form.getCategory());
+  public static Product from(ProductAddForm form) {
 
     return Product.builder()
             .name(form.getName())
             .code(form.getCode())
-            .categoryType(categoryTypeFromForm)
+            .categoryType(form.getCategory())
             .description(form.getDescription())
             .price(Long.valueOf(form.getPrice()))
             .build();

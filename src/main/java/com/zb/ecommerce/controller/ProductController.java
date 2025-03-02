@@ -32,43 +32,20 @@ public class ProductController {
     return ResponseEntity.ok(form.getCode() + " 의 세부사항이 추가되었습니다.");
   }
 
-  @GetMapping("/products")
-  public ResponseEntity<List<String>> getAllProduct(@RequestParam(defaultValue = "0") int page) {
-    return ResponseEntity.ok(productService.getAllProduct(page));
-  }
-
   @GetMapping("/products/detail")
   public ResponseEntity<ProductDto> getProductDetail(@RequestParam String code) {
     return ResponseEntity.ok(productService.getProductDetail(code));
   }
 
-  @GetMapping("/products/sort/name")
-  public ResponseEntity<List<String>> getProductSortName(
+  @GetMapping("/products/search")
+  public ResponseEntity<List<String>> getAllSearchProduct(
           @RequestParam(defaultValue = "0") int page,
+          @RequestParam(defaultValue = "") String keyword,
+          @RequestParam(defaultValue = "OTHERS") String category,
+          @RequestParam(defaultValue = "name") String sort,
           @RequestParam(defaultValue = "true") boolean asc) {
-    return ResponseEntity.ok(productService.getAllProductSort( page, "name", asc));
-  }
-
-
-  @GetMapping("/products/sort/price")
-  public ResponseEntity<List<String>> getProductSortPrice(
-          @RequestParam(defaultValue = "0") int page,
-          @RequestParam(defaultValue = "true") boolean asc) {
-    return ResponseEntity.ok(productService.getAllProductSort( page, "price", asc));
-  }
-
-  @GetMapping("/products/sort/category")
-  public ResponseEntity<List<String>> getProductSortCategory(
-          @RequestParam(defaultValue = "0") int page,
-          @RequestParam(defaultValue = "other") String category) {
-    return ResponseEntity.ok(productService.getAllProductSortCategory(page, category));
-  }
-
-  @GetMapping("/products/search/keyword")
-  public ResponseEntity<List<String>> getProductSortKeyword(
-          @RequestParam(defaultValue = "0") int page,
-          @RequestParam String keyword) {
-    return ResponseEntity.ok(productService.getAllProductSearchKeyword(page, keyword));
+    return ResponseEntity.ok(productService.getAllSearchProduct(
+            page, keyword, category, sort, asc));
   }
 
   @PatchMapping("/product")

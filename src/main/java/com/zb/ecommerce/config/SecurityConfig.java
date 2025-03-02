@@ -52,7 +52,7 @@ public class SecurityConfig {
             .logout(AbstractHttpConfigurer::disable);
     http
             .authorizeHttpRequests((auth) ->
-                    auth.requestMatchers("/login", "/", "/join", "/email-auth","/cart","/products","/products/**" ).permitAll()
+                    auth.requestMatchers("/login", "/", "/join", "/email-auth", "/products", "/products/**", "/cart", "/carts").permitAll()
                             .requestMatchers("/product", "/product/*").hasRole("ADMIN")
                             .anyRequest().authenticated());
     http
