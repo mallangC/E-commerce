@@ -19,17 +19,18 @@ public class MemberController {
 
   private final MemberService memberService;
 
-  @GetMapping("/email-auth")
-  public String index(@RequestParam String email,@RequestParam String code) {
-    memberService.emailAuth(email, code);
-    return "회원이 인증되었습니다.";
+
+  @PostMapping("/join")
+  public ResponseEntity<?> addMember(@Valid @RequestBody JoinForm form) {
+    memberService.addMember(form);
+    return ResponseEntity.ok(form.getEmail() + " 으로 회원가입 인증 메일이 전송되었습니다.");
   }
 
 
-  @PostMapping("/join")
-  public ResponseEntity<?> addUser(@Valid @RequestBody JoinForm form) {
-    memberService.addMember(form);
-    return ResponseEntity.ok(form.getEmail()+" 으로 회원가입 인증 메일이 전송되었습니다.");
+  @GetMapping("/email-auth")
+  public String index(@RequestParam String email, @RequestParam String code) {
+    memberService.emailAuth(email, code);
+    return "회원이 인증되었습니다.";
   }
 
 
@@ -49,9 +50,9 @@ public class MemberController {
 
   @PostMapping("/logout")
   public ResponseEntity<String> logout(HttpServletRequest request) {
-    String token  = request.getHeader(HttpHeaders.AUTHORIZATION);
+    String token = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-    if (memberService.logout(token)){
+    if (memberService.logout(token)) {
       return ResponseEntity.ok("로그아웃 완료");
     }
     return ResponseEntity.ok("유효한 토큰이 없습니다.");

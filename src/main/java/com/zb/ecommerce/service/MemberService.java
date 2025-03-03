@@ -5,9 +5,9 @@ import com.zb.ecommerce.domain.dto.MemberDto;
 import com.zb.ecommerce.domain.form.JoinForm;
 import com.zb.ecommerce.domain.form.LoginForm;
 import com.zb.ecommerce.domain.form.MemberUpdateForm;
+import com.zb.ecommerce.domain.type.MemberType;
 import com.zb.ecommerce.exception.CustomException;
 import com.zb.ecommerce.model.Member;
-import com.zb.ecommerce.domain.type.MemberType;
 import com.zb.ecommerce.repository.MemberRepository;
 import com.zb.ecommerce.security.JWTUtil;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import static com.zb.ecommerce.exception.ErrorCode.*;
@@ -30,6 +31,7 @@ public class MemberService {
   private final MailComponent mailComponent;
   private final RedisService redisService;
   private final JWTUtil jwtUtil;
+
 
   public void addMember(JoinForm form) {
     boolean isExist = memberRepository.existsByEmail(form.getEmail());
@@ -92,6 +94,7 @@ public class MemberService {
     return MemberDto.from(findMemberByEmail(email));
   }
 
+
   @Transactional
   public MemberDto updateMemberDetail(MemberUpdateForm form, String tokenEmail){
 
@@ -101,7 +104,21 @@ public class MemberService {
     return MemberDto.from(member);
   }
 
-  public void memberUpdateFromForm(MemberUpdateForm form, Member member){
+
+  @Transactional
+  public MemberDto deleteMember(LoginForm form, String tokenEmail){
+    String password = form.getPassword();
+    Member member = findMemberByEmail(tokenEmail);
+
+    if (!passwordEncoder.matches(password, member.getPassword())) {
+      throw new CustomException(NOT_MATCH_PASSWORD);
+    }
+    memberRepository.deleteByEmail(tokenEmail);
+    redisService.deleteRefreshToken(tokenEmail);
+    return MemberDto.from(member);
+  }
+
+  private void memberUpdateFromForm(MemberUpdateForm form, Member member){
 
     if (!passwordEncoder.matches(form.getCurPassword(), member.getPassword())) {
       throw new CustomException(NOT_MATCH_PASSWORD);
@@ -127,26 +144,10 @@ public class MemberService {
     }
   }
 
-
-  @Transactional
-  public MemberDto deleteMember(LoginForm form, String tokenEmail){
-    String password = form.getPassword();
-    Member member = findMemberByEmail(tokenEmail);
-
-    if (!passwordEncoder.matches(password, member.getPassword())) {
-      throw new CustomException(NOT_MATCH_PASSWORD);
-    }
-    memberRepository.deleteByEmail(tokenEmail);
-    redisService.deleteRefreshToken(tokenEmail);
-    return MemberDto.from(member);
-  }
-
-
   private Member findMemberByEmail(String email){
     return memberRepository.findByEmail(email)
             .orElseThrow(()-> new CustomException(NOT_FOUND_MEMBER));
   }
-
 
   private Member from(JoinForm form) {
     return Member.builder()
@@ -156,8 +157,9 @@ public class MemberService {
             .phone(form.getPhone())
             .address(form.getAddress())
             .addressDetail(form.getAddressDetail())
-            .role(MemberType.MEMBER)
+            .role(MemberType.ROLE_MEMBER)
             .isEmailVerified(false)
+            .cart(new ArrayList<>())
             .build();
   }
 
