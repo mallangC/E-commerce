@@ -26,7 +26,7 @@ public class ProductDetail extends BaseEntity{
     return ProductDetail.builder()
             .product(product)
             .size(form.getSize().toUpperCase())
-            .quantity(Integer.parseInt(form.getQuantity()))
+            .quantity(form.getQuantity())
             .build();
   }
 }

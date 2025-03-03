@@ -32,29 +32,18 @@ public class CartService {
   @CacheEvict(value = "cart", allEntries = true)
   @Transactional
   public CartProductDto addProductToCart(String email, CartAddForm form) {
-    Member member = findMemberByEmail(email);
-    Product product = findProductByCode(form.getProductCode());
-    int quantity = 1;
-    if (form.getQuantity() != null) {
-      quantity = Integer.parseInt(form.getQuantity());
-    }
+    Member member = memberRepository.searchByEmail(email);
+    Product product = productRepository.searchByCode(form.getProductCode());
+    int quantity = form.getQuantity();
 
     String size = form.getSize().toUpperCase();
-    ProductDetail productDetail = product.getDetails().stream()
-            .filter(detail -> detail.getSize().equals(size))
-            .findFirst()
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_SIZE));
+    ProductDetail productDetail = sizeCheck(product, size);
 
     boolean isExist = member.getCart().stream()
             .anyMatch(item -> Objects.equals(item.getProduct().getId(), product.getId()));
 
     if (isExist) {
-      CartProduct cartProduct = cartProductRepository.findByMemberAndProductAndSize(member, product, size)
-              .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CART_PRODUCT));
-      if (cartProduct.getQuantity() + quantity > productDetail.getQuantity()) {
-        throw new CustomException(ErrorCode.NOT_ENOUGH_PRODUCT);
-      }
-      cartProduct.setQuantity(cartProduct.getQuantity() + quantity);
+      CartProduct cartProduct = quantityCheck(member, product, productDetail, size, quantity);
       return CartProductDto.from(cartProduct);
     }
 
@@ -68,8 +57,7 @@ public class CartService {
 
   @Cacheable(value = "cart", key = "'cart-all-'+#email")
   public List<CartProductDto> getAllCartProducts(String email) {
-    Member member = findMemberByEmail(email);
-
+    Member member = memberRepository.searchByEmail(email);
     return member.getCart().stream()
             .map(CartProductDto::from)
             .toList();
@@ -82,12 +70,9 @@ public class CartService {
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CART_PRODUCT));
     Product product = cartProduct.getProduct();
     String size = form.getSize().toUpperCase();
-    ProductDetail productDetail = product.getDetails().stream()
-            .filter(detail -> detail.getSize().equals(size))
-            .findFirst()
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_SIZE));
+    ProductDetail productDetail = sizeCheck(product, size);
 
-    int quantity = Integer.parseInt(form.getQuantity());
+    int quantity = form.getQuantity();
 
     if (quantity > productDetail.getQuantity()) {
       throw new CustomException(ErrorCode.NOT_ENOUGH_PRODUCT);
@@ -106,15 +91,25 @@ public class CartService {
     cartProductRepository.deleteById(id);
   }
 
-
-  private Member findMemberByEmail(String email) {
-    return memberRepository.findByEmail(email)
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_MEMBER));
+  private CartProduct quantityCheck(Member member,
+                                    Product product,
+                                    ProductDetail productDetail,
+                                    String size,
+                                    int quantity) {
+    CartProduct cartProduct =  cartProductRepository.findByMemberAndProductAndSize(member, product, size)
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CART_PRODUCT));
+    if (cartProduct.getQuantity() + quantity > productDetail.getQuantity()) {
+      throw new CustomException(ErrorCode.NOT_ENOUGH_PRODUCT);
+    }
+    cartProduct.setQuantity(cartProduct.getQuantity() + quantity);
+    return cartProduct;
   }
 
-  private Product findProductByCode(String code) {
-    return productRepository.findByCode(code)
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_PRODUCT));
+  private ProductDetail sizeCheck(Product product, String size){
+    return product.getDetails().stream()
+            .filter(detail -> detail.getSize().equals(size))
+            .findFirst()
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_SIZE));
   }
 
 }

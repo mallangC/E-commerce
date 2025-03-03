@@ -50,7 +50,7 @@ class CartServiceTest {
   CartAddForm cartAddForm = CartAddForm.builder()
           .productCode("shoes_mk1")
           .size("L")
-          .quantity("1")
+          .quantity(1)
           .build();
 
 
@@ -58,15 +58,15 @@ class CartServiceTest {
   @DisplayName("카트 상품 추가")
   void addProductToCart1() {
     //given
-    given(memberRepository.findByEmail(anyString()))
-            .willReturn(Optional.of(Member.builder()
+    given(memberRepository.searchByEmail(anyString()))
+            .willReturn(Member.builder()
                     .id(1L)
                     .email("test@test.com")
                     .cart(new ArrayList<>())
-                    .build()));
+                    .build());
 
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
                     .price(57000L)
@@ -77,7 +77,7 @@ class CartServiceTest {
                             .size("L")
                             .quantity(5)
                             .build()))
-                    .build()));
+                    .build());
 
     given(cartProductRepository.save(any()))
             .willReturn(CartProduct.builder()
@@ -114,8 +114,8 @@ class CartServiceTest {
   @DisplayName("카트 상품 추가(이미 카트에 상품이 있음)")
   void addProductToCart2() {
     //given
-    given(memberRepository.findByEmail(anyString()))
-            .willReturn(Optional.of(Member.builder()
+    given(memberRepository.searchByEmail(anyString()))
+            .willReturn(Member.builder()
                     .id(1L)
                     .email("test@test.com")
                     .cart(List.of(CartProduct.builder()
@@ -135,10 +135,10 @@ class CartServiceTest {
                             .size("L")
                             .quantity(1)
                             .build()))
-                    .build()));
+                    .build());
 
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
                     .price(57000L)
@@ -149,7 +149,7 @@ class CartServiceTest {
                             .size("L")
                             .quantity(5)
                             .build()))
-                    .build()));
+                    .build());
 
     given(cartProductRepository.findByMemberAndProductAndSize(any(), any(), anyString()))
             .willReturn(Optional.of(CartProduct.builder()
@@ -186,8 +186,8 @@ class CartServiceTest {
   @DisplayName("카트 상품 추가 실패(잘못된 이메일 입력)")
   void addProductToCartFailure1() {
     //given
-    given(memberRepository.findByEmail(anyString()))
-            .willReturn(Optional.empty());
+    given(memberRepository.searchByEmail(anyString()))
+            .willThrow(new CustomException(NOT_FOUND_MEMBER));
 
     try {
       //when
@@ -203,14 +203,14 @@ class CartServiceTest {
   @DisplayName("카트 상품 추가 실패(잘못된 코드 입력)")
   void addProductToCartFailure2() {
     //given
-    given(memberRepository.findByEmail(anyString()))
-            .willReturn(Optional.of(Member.builder()
+    given(memberRepository.searchByEmail(anyString()))
+            .willReturn(Member.builder()
                     .id(1L)
                     .email("test@test.com")
-                    .build()));
+                    .build());
 
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.empty());
+    given(productRepository.searchByCode(anyString()))
+            .willThrow(new CustomException(NOT_FOUND_PRODUCT));
     try {
       //when
       cartService.addProductToCart("email", cartAddForm);
@@ -225,14 +225,14 @@ class CartServiceTest {
   @DisplayName("카트 상품 추가 실패(잘못된 사이즈 입력)")
   void addProductToCartFailure3() {
     //given
-    given(memberRepository.findByEmail(anyString()))
-            .willReturn(Optional.of(Member.builder()
+    given(memberRepository.searchByEmail(anyString()))
+            .willReturn(Member.builder()
                     .id(1L)
                     .email("test@test.com")
-                    .build()));
+                    .build());
 
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
                     .price(57000L)
@@ -243,7 +243,7 @@ class CartServiceTest {
                             .size("M")
                             .quantity(5)
                             .build()))
-                    .build()));
+                    .build());
 
 
     try {
@@ -260,8 +260,8 @@ class CartServiceTest {
   @DisplayName("카트 상품 추가 실패(이미 카트에 상품이 있고 상품 갯수가 부족함)")
   void addProductToCartFailure4() {
     //given
-    given(memberRepository.findByEmail(anyString()))
-            .willReturn(Optional.of(Member.builder()
+    given(memberRepository.searchByEmail(anyString()))
+            .willReturn(Member.builder()
                     .id(1L)
                     .email("test@test.com")
                     .cart(List.of(CartProduct.builder()
@@ -281,10 +281,10 @@ class CartServiceTest {
                             .size("L")
                             .quantity(1)
                             .build()))
-                    .build()));
+                    .build());
 
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
                     .price(57000L)
@@ -295,7 +295,7 @@ class CartServiceTest {
                             .size("L")
                             .quantity(1)
                             .build()))
-                    .build()));
+                    .build());
 
 
     given(cartProductRepository.findByMemberAndProductAndSize(any(), any(), anyString()))
@@ -334,8 +334,8 @@ class CartServiceTest {
   @DisplayName("카트에 모든 상품 확인")
   void getAllCartProducts1() {
     //given
-    given(memberRepository.findByEmail(anyString()))
-            .willReturn(Optional.of(Member.builder()
+    given(memberRepository.searchByEmail(anyString()))
+            .willReturn(Member.builder()
                     .id(1L)
                     .email("test@test.com")
                     .cart(List.of(CartProduct.builder()
@@ -357,7 +357,7 @@ class CartServiceTest {
                             .size("M")
                             .quantity(1)
                             .build()))
-                    .build()));
+                    .build());
     //when
     List<CartProductDto> result = cartService.getAllCartProducts("email");
     //then
@@ -373,12 +373,12 @@ class CartServiceTest {
   @DisplayName("카트에 모든 상품 확인(카트에 아무것도 없음)")
   void getAllCartProducts2() {
     //given
-    given(memberRepository.findByEmail(anyString()))
-            .willReturn(Optional.of(Member.builder()
+    given(memberRepository.searchByEmail(anyString()))
+            .willReturn(Member.builder()
                     .id(1L)
                     .email("test@test.com")
                     .cart(new ArrayList<>())
-                    .build()));
+                    .build());
     //when
     List<CartProductDto> result = cartService.getAllCartProducts("email");
     //then
@@ -413,7 +413,7 @@ class CartServiceTest {
     CartUpdateForm form = CartUpdateForm.builder()
             .id(1L)
             .size("M")
-            .quantity("2")
+            .quantity(2)
             .build();
     //when
     CartProductDto result = cartService.updateProductToCart(form);
@@ -431,7 +431,7 @@ class CartServiceTest {
     CartUpdateForm form = CartUpdateForm.builder()
             .id(1L)
             .size("M")
-            .quantity("2")
+            .quantity(2)
             .build();
 
     try {
@@ -469,7 +469,7 @@ class CartServiceTest {
     CartUpdateForm form = CartUpdateForm.builder()
             .id(1L)
             .size("L")
-            .quantity("2")
+            .quantity(2)
             .build();
     try {
       //when
@@ -506,7 +506,7 @@ class CartServiceTest {
     CartUpdateForm form = CartUpdateForm.builder()
             .id(1L)
             .size("M")
-            .quantity("10")
+            .quantity(10)
             .build();
     try {
       //when

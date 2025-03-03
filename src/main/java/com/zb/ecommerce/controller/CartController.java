@@ -4,6 +4,7 @@ import com.zb.ecommerce.domain.dto.CartProductDto;
 import com.zb.ecommerce.domain.form.CartAddForm;
 import com.zb.ecommerce.domain.form.CartUpdateForm;
 import com.zb.ecommerce.service.CartService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,7 +19,7 @@ public class CartController {
   private final CartService cartService;
 
   @PostMapping("/cart")
-  public ResponseEntity<CartProductDto> addCartProduct(@RequestBody CartAddForm form) {
+  public ResponseEntity<CartProductDto> addCartProduct(@Valid @RequestBody CartAddForm form) {
     String email = SecurityContextHolder.getContext().getAuthentication().getName();
     return ResponseEntity.ok(cartService.addProductToCart(email, form));
   }
@@ -30,7 +31,7 @@ public class CartController {
   }
 
   @PatchMapping("/cart")
-  public ResponseEntity<CartProductDto> updateCartProduct(@RequestBody CartUpdateForm form) {
+  public ResponseEntity<CartProductDto> updateCartProduct(@Valid @RequestBody CartUpdateForm form) {
     return ResponseEntity.ok(cartService.updateProductToCart(form));
   }
 

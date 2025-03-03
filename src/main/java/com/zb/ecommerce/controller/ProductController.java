@@ -1,18 +1,18 @@
 package com.zb.ecommerce.controller;
 
+import com.zb.ecommerce.domain.dto.PageDto;
 import com.zb.ecommerce.domain.dto.ProductDetailDto;
 import com.zb.ecommerce.domain.dto.ProductDto;
 import com.zb.ecommerce.domain.form.ProductAddForm;
 import com.zb.ecommerce.domain.form.ProductDetailAddForm;
 import com.zb.ecommerce.domain.form.ProductDetailUpdateForm;
 import com.zb.ecommerce.domain.form.ProductUpdateForm;
+import com.zb.ecommerce.domain.type.CategoryType;
 import com.zb.ecommerce.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -38,10 +38,10 @@ public class ProductController {
   }
 
   @GetMapping("/products/search")
-  public ResponseEntity<List<String>> getAllSearchProduct(
+  public ResponseEntity<PageDto> getAllSearchProduct(
           @RequestParam(defaultValue = "0") int page,
-          @RequestParam(defaultValue = "") String keyword,
-          @RequestParam(defaultValue = "OTHERS") String category,
+          @RequestParam(required = false) String keyword,
+          @RequestParam(required = false) CategoryType category,
           @RequestParam(defaultValue = "name") String sort,
           @RequestParam(defaultValue = "true") boolean asc) {
     return ResponseEntity.ok(productService.getAllSearchProduct(
