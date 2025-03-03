@@ -7,12 +7,11 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class ProductDetailUpdateForm {
-  @NotBlank(message = "코드를 입력해주세요")
-  private String code;
-  @NotBlank(message = "수정할 사이즈를 입력해주세요")
+public class CartAddForm {
+  @NotBlank(message = "상품 코드를 입력해주세요")
+  private String productCode;
+  @NotBlank(message = "상품 사이즈를 입력해주세요")
   private String size;
-  private String changeSize;
   @Min(value = 1, message = "1이상의 숫자만 입력해주세요")
   private Integer quantity;
 }
