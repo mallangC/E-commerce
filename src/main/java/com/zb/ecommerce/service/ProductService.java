@@ -41,7 +41,6 @@ public class ProductService {
 
   public void addProductDetail(ProductDetailAddForm form) {
     Product product = productRepository.searchByCode(form.getCode());
-
     if (!product.getDetails().isEmpty()) {
       List<ProductDetail> details = product.getDetails();
       for (ProductDetail detail : details) {
