@@ -21,7 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static com.zb.ecommerce.exception.ErrorCode.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,9 +54,8 @@ class ProductServiceTest {
   ProductDetailAddForm detailAddForm = ProductDetailAddForm.builder()
           .code("shoes_mk1")
           .size("M")
-          .quantity("5")
+          .quantity(5)
           .build();
-
 
 
   @Test
@@ -94,16 +92,16 @@ class ProductServiceTest {
   @DisplayName("상품 디테일 추가 성공")
   void addProductDetail() {
     //given
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
                     .code("shoes_mk1")
                     .description("너무 이쁜 신발")
                     .price(89000L)
                     .categoryType(CategoryType.SHOES)
-                    .details(null)
-                    .build()));
+                    .details(new ArrayList<>())
+                    .build());
     //when
     productService.addProductDetail(detailAddForm);
     //then
@@ -114,16 +112,16 @@ class ProductServiceTest {
   @DisplayName("상품 디테일 추가 실패(상품을 찾을 수 없음)")
   void addProductDetailFailure1() {
     //given
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
                     .code("shoes_mk1")
                     .description("너무 이쁜 신발")
                     .price(89000L)
                     .categoryType(CategoryType.SHOES)
-                    .details(null)
-                    .build()));
+                    .details(new ArrayList<>())
+                    .build());
     try {
       //when
       productService.addProductDetail(detailAddForm);
@@ -138,8 +136,8 @@ class ProductServiceTest {
   @DisplayName("상품 디테일 추가 실패(이미 추가된 상품 디테일)")
   void addProductDetailFailure2() {
     //given
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
                     .code("shoes_mk1")
@@ -150,7 +148,7 @@ class ProductServiceTest {
                             .size("M")
                             .quantity(3)
                             .build()))
-                    .build()));
+                    .build());
     try {
       //when
       productService.addProductDetail(detailAddForm);
@@ -167,8 +165,8 @@ class ProductServiceTest {
   @DisplayName("디테일 확인")
   void getProductDetail() {
     //given
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .name("신발")
                     .code("shoes_mk1")
                     .categoryType(CategoryType.SHOES)
@@ -181,7 +179,7 @@ class ProductServiceTest {
                                     .size("L")
                                     .quantity(0)
                                     .build()))
-                    .build()));
+                    .build());
     //when
     ProductDto result = productService.getProductDetail("code");
     //then
@@ -192,12 +190,12 @@ class ProductServiceTest {
   @DisplayName("디테일 확인(디테일 없음)")
   void getProductDetailFailure() {
     //given
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .name("신발")
                     .price(89000L)
                     .details(new ArrayList<>())
-                    .build()));
+                    .build());
     //when
     ProductDto result = productService.getProductDetail("code");
     //then
@@ -210,15 +208,15 @@ class ProductServiceTest {
   @DisplayName("상품 수정")
   void updateProduct() {
     //given
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .code("belt_mk1")
                     .name("벨트")
                     .categoryType(CategoryType.BELT)
                     .price(32000L)
                     .description("짱짱한 벨트")
                     .details(new ArrayList<>())
-                    .build()));
+                    .build());
 
     ProductUpdateForm form = ProductUpdateForm.builder()
             .name("신발")
@@ -226,46 +224,46 @@ class ProductServiceTest {
             .changeCode("shoes_mk1")
             .description("너무나 이쁜 신발")
             .price("89000")
-            .categoryType("shoes")
+            .categoryType(CategoryType.SHOES)
             .build();
     //when
     ProductDto result = productService.updateProduct(form);
     //then
-    assertEquals("신발",result.getName());
-    assertEquals("shoes_mk1",result.getCode());
-    assertEquals("너무나 이쁜 신발",result.getDescription());
+    assertEquals("신발", result.getName());
+    assertEquals("shoes_mk1", result.getCode());
+    assertEquals("너무나 이쁜 신발", result.getDescription());
     assertEquals(CategoryType.SHOES, result.getCategoryType());
-    assertEquals(89000L,result.getPrice());
+    assertEquals(89000L, result.getPrice());
   }
 
   @Test
   @DisplayName("상품 수정(price, name 빼고 진행)")
   void updateProductFailure1() {
     //given
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .code("belt_mk1")
                     .name("벨트")
                     .categoryType(CategoryType.BELT)
                     .price(32000L)
                     .description("짱짱한 벨트")
                     .details(new ArrayList<>())
-                    .build()));
+                    .build());
 
     ProductUpdateForm form = ProductUpdateForm.builder()
             .code("belt_mk1")
             .changeCode("shoes_mk1")
-            .categoryType("shoes")
+            .categoryType(CategoryType.SHOES)
             .description("너무나 이쁜 신발")
             .build();
     //when
     ProductDto result = productService.updateProduct(form);
     //then
-    assertEquals("벨트",result.getName());
-    assertEquals("shoes_mk1",result.getCode());
-    assertEquals("너무나 이쁜 신발",result.getDescription());
-    assertEquals(CategoryType.SHOES,result.getCategoryType());
-    assertEquals(32000L,result.getPrice());
+    assertEquals("벨트", result.getName());
+    assertEquals("shoes_mk1", result.getCode());
+    assertEquals("너무나 이쁜 신발", result.getDescription());
+    assertEquals(CategoryType.SHOES, result.getCategoryType());
+    assertEquals(32000L, result.getPrice());
   }
 
   //-------
@@ -274,8 +272,8 @@ class ProductServiceTest {
   @DisplayName("디테일 수정")
   void updateProductDetail() {
     //given
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .name("벨트")
                     .categoryType(CategoryType.BELT)
                     .price(32000L)
@@ -283,28 +281,28 @@ class ProductServiceTest {
                             .size("L")
                             .quantity(5)
                             .build()))
-                    .build()));
+                    .build());
 
     ProductDetailUpdateForm form = ProductDetailUpdateForm.builder()
             .code("belt_mk1")
             .size("L")
             .changeSize("M")
-            .quantity("10")
+            .quantity(10)
             .build();
 
     //when
     ProductDetailDto result = productService.updateProductDetail(form);
     //then
-    assertEquals("M",result.getSize());
-    assertEquals(10,result.getQuantity());
+    assertEquals("M", result.getSize());
+    assertEquals(10, result.getQuantity());
   }
 
   @Test
   @DisplayName("디테일 수정(quantity만 수정)")
   void updateProductDetail2() {
     //given
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .name("벨트")
                     .categoryType(CategoryType.BELT)
                     .price(32000L)
@@ -312,27 +310,27 @@ class ProductServiceTest {
                             .size("L")
                             .quantity(5)
                             .build()))
-                    .build()));
+                    .build());
 
     ProductDetailUpdateForm form = ProductDetailUpdateForm.builder()
             .code("belt_mk1")
             .size("L")
-            .quantity("10")
+            .quantity(10)
             .build();
 
     //when
     ProductDetailDto result = productService.updateProductDetail(form);
     //then
-    assertEquals("L",result.getSize());
-    assertEquals(10,result.getQuantity());
+    assertEquals("L", result.getSize());
+    assertEquals(10, result.getQuantity());
   }
 
   @Test
   @DisplayName("디테일 수정 실패(맞는 size가 없음)")
   void updateProductDetailFailure() {
     //given
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .name("벨트")
                     .categoryType(CategoryType.BELT)
                     .price(32000L)
@@ -340,18 +338,18 @@ class ProductServiceTest {
                             .size("M")
                             .quantity(5)
                             .build()))
-                    .build()));
+                    .build());
 
     ProductDetailUpdateForm form = ProductDetailUpdateForm.builder()
             .code("belt_mk1")
             .size("L")
-            .quantity("10")
+            .quantity(10)
             .build();
 
     try {
       //when
       productService.updateProductDetail(form);
-    } catch (CustomException e){
+    } catch (CustomException e) {
       //then
       assertEquals(NOT_FOUND_SIZE, e.getErrorCode());
     }
@@ -363,8 +361,8 @@ class ProductServiceTest {
   @DisplayName("상품 삭제")
   void deleteProduct() {
     //given
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .name("벨트")
                     .code("belt_mk1")
                     .categoryType(CategoryType.BELT)
@@ -373,11 +371,11 @@ class ProductServiceTest {
                             .size("L")
                             .quantity(5)
                             .build()))
-                    .build()));
+                    .build());
     //when
     productService.deleteProduct("belt_mk1");
     //then
-    verify(productRepository, times(1)).findByCode(anyString());
+    verify(productRepository, times(1)).searchByCode(anyString());
     verify(productRepository, times(1)).deleteByCode(anyString());
   }
 
@@ -387,8 +385,8 @@ class ProductServiceTest {
   @DisplayName("상품 디테일 삭제")
   void deleteProductDetail() {
     //given
-    given(productRepository.findByCode(anyString()))
-            .willReturn(Optional.of(Product.builder()
+    given(productRepository.searchByCode(anyString()))
+            .willReturn(Product.builder()
                     .name("벨트")
                     .code("belt_mk1")
                     .categoryType(CategoryType.BELT)
@@ -397,7 +395,7 @@ class ProductServiceTest {
                             .size("L")
                             .quantity(5)
                             .build()))
-                    .build()));
+                    .build());
 
     ProductDetailUpdateForm form = ProductDetailUpdateForm.builder()
             .code("belt_mk1")
@@ -407,8 +405,8 @@ class ProductServiceTest {
     ProductDetailDto result = productService.deleteProductDetail(form);
 
     //then
-    assertEquals("L",result.getSize());
-    assertEquals(5,result.getQuantity());
+    assertEquals("L", result.getSize());
+    assertEquals(5, result.getQuantity());
   }
 
 }

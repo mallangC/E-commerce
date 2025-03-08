@@ -31,6 +31,16 @@ public class ProductDto implements Serializable {
             .categoryType(product.getCategoryType())
             .details(product.getDetails().stream().map(ProductDetailDto::from).toList())
             .build();
+  }
+
+  public static ProductDto fromWithoutDetail(Product product) {
+    return ProductDto.builder()
+            .name(product.getName())
+            .code(product.getCode())
+            .description(product.getDescription())
+            .price(product.getPrice())
+            .categoryType(product.getCategoryType())
+            .build();
 
   }
 }

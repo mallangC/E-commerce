@@ -27,6 +27,6 @@ public class Member extends BaseEntity{
   @Enumerated(EnumType.STRING)
   private MemberType role;
   private Boolean isEmailVerified;
-  @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+  @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<CartProduct> cart;
 }

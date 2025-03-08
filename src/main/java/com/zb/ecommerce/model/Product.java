@@ -5,6 +5,7 @@ import com.zb.ecommerce.domain.type.CategoryType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,7 +26,7 @@ public class Product extends BaseEntity {
   private CategoryType categoryType;
   private String description;
   private Long price;
-  @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+  @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<ProductDetail> details;
 
   public static Product from(ProductAddForm form) {
@@ -36,6 +37,7 @@ public class Product extends BaseEntity {
             .categoryType(form.getCategory())
             .description(form.getDescription())
             .price(Long.valueOf(form.getPrice()))
+            .details(new ArrayList<>())
             .build();
   }
 }

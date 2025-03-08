@@ -8,12 +8,11 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class ProductDetailAddForm {
-  @NotBlank
-  private String code;
-  @NotBlank
-  @Pattern(regexp = "^[0-9a-zA-Z]+$", message = "사이즈를 입력해주세요")
+public class CartUpdateForm {
+  @Pattern(regexp = "^[0-9]+$", message = "숫자를 입력해주세요")
+  private Long id;
+  @NotBlank(message = "상품 사이즈를 입력해주세요")
   private String size;
-  @Min(value = 1, message = "1개 이상의 숫자만 입력해주세요")
+  @Min(value = 1, message = "1이상의 숫자만 입력해주세요")
   private Integer quantity;
 }

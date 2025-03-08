@@ -1,7 +1,6 @@
 package com.zb.ecommerce.service;
 
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.zb.ecommerce.domain.dto.PageDto;
 import com.zb.ecommerce.domain.dto.ProductDetailDto;
 import com.zb.ecommerce.domain.dto.ProductDto;
 import com.zb.ecommerce.domain.form.ProductAddForm;
@@ -21,13 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.zb.ecommerce.model.QProduct.product;
+import static com.zb.ecommerce.exception.ErrorCode.NOT_FOUND_SIZE;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
 
-  private final JPAQueryFactory queryFactory;
   private final ProductRepository productRepository;
   private final ProductDetailRepository productDetailRepository;
 
@@ -42,9 +40,8 @@ public class ProductService {
   }
 
   public void addProductDetail(ProductDetailAddForm form) {
-    Product product = findProductByCode(form.getCode());
-
-    if (product.getDetails() != null) {
+    Product product = productRepository.searchByCode(form.getCode());
+    if (!product.getDetails().isEmpty()) {
       List<ProductDetail> details = product.getDetails();
       for (ProductDetail detail : details) {
         if (detail.getSize().equals(form.getSize().toUpperCase())) {
@@ -57,90 +54,61 @@ public class ProductService {
   }
 
   public ProductDto getProductDetail(String code) {
-    Product product = findProductByCode(code);
+    Product product = productRepository.searchByCode(code);
     return ProductDto.from(product);
   }
 
-  public List<String> getAllSearchProduct(int page, String keyword,
-                                          String category, String sortType, boolean asc) {
+  public PageDto getAllSearchProduct(int page,
+                                     String keyword,
+                                     CategoryType category,
+                                     String sortType,
+                                     boolean asc) {
 
-    List<Product> products;
-    OrderSpecifier<?> sort = product.name.asc();
-    if (sortType.equals("price") && asc) {
-      sort = product.price.asc();
-    } else if (sortType.equals("price")) {
-      sort = product.price.desc();
-    } else if (!asc) {
-      sort = product.name.desc();
-    }
-
-    CategoryType categoryType = CategoryType.fromString(category);
-
-    if (!keyword.isEmpty() && categoryType != CategoryType.OTHERS) {
-      products = queryFactory.selectFrom(product)
-              .where(product.name.contains(keyword))
-              .where(product.description.contains(keyword))
-              .where(product.categoryType.eq(categoryType))
-              .orderBy(sort)
-              .limit(20)
-              .offset(page)
-              .fetch();
-    } else if (!keyword.isEmpty()) {
-      products = queryFactory.selectFrom(product)
-              .where(product.name.contains(keyword))
-              .where(product.description.contains(keyword))
-              .orderBy(sort)
-              .limit(20)
-              .offset(page)
-              .fetch();
-    } else if (categoryType != CategoryType.OTHERS) {
-      products = queryFactory.selectFrom(product)
-              .where(product.categoryType.eq(categoryType))
-              .orderBy(sort)
-              .limit(20)
-              .offset(page)
-              .fetch();
-    } else {
-      products = queryFactory.selectFrom(product)
-              .orderBy(sort)
-              .limit(20)
-              .offset(page)
-              .fetch();
-    }
-
-    return products.stream().map(product ->
-            String.format("%s : %,d원", product.getName(), product.getPrice())).toList();
+    return PageDto.from(productRepository.searchAll(page, keyword, category, sortType, asc));
   }
 
   @Transactional
   public ProductDto updateProduct(ProductUpdateForm form) {
-    Product product = findProductByCode(form.getCode());
+    Product product = productRepository.searchByCode(form.getCode());
     setProductFromForm(form, product);
     return ProductDto.from(product);
   }
 
   @Transactional
   public ProductDetailDto updateProductDetail(ProductDetailUpdateForm form) {
-    Product product = findProductByCode(form.getCode());
-    ProductDetail detail = findProductDetailByProductAndSize(product, form.getSize());
+    Product product = productRepository.searchByCode(form.getCode());
+    ProductDetail productDetail = product.getDetails().stream()
+            .filter(detail -> detail.getSize().equals(form.getSize().toUpperCase()))
+            .findFirst().orElse(null);
 
-    setProductDetailFromForm(form, detail, product);
-    return ProductDetailDto.from(detail);
+    if (productDetail == null) {
+      throw new CustomException(NOT_FOUND_SIZE);
+    }
+
+    setProductDetailFromForm(form, productDetail, product);
+    return ProductDetailDto.from(productDetail);
   }
 
   @Transactional
   public ProductDto deleteProduct(String code) {
-    Product product = findProductByCode(code);
+    Product product = productRepository.searchByCode(code);
     productRepository.deleteByCode(code);
     return ProductDto.from(product);
   }
 
   @Transactional
   public ProductDetailDto deleteProductDetail(ProductDetailUpdateForm form) {
-    Product product = findProductByCode(form.getCode());
-    ProductDetail detail = findProductDetailByProductAndSize(product, form.getSize());
-    productDetailRepository.delete(detail);
-    return ProductDetailDto.from(detail);
+    Product product = productRepository.searchByCode(form.getCode());
+    ProductDetail productDetail = product.getDetails().stream()
+            .filter(detail -> detail.getSize().equals(form.getSize().toUpperCase()))
+            .findFirst().orElse(null);
+
+    if (productDetail == null) {
+      throw new CustomException(NOT_FOUND_SIZE);
+    }
+
+    productDetailRepository.delete(productDetail);
+    return ProductDetailDto.from(productDetail);
   }
 
   private void setProductFromForm(ProductUpdateForm form, Product product) {
@@ -157,11 +125,13 @@ public class ProductService {
       product.setPrice(Long.valueOf(form.getPrice()));
     }
     if (form.getCategoryType() != null) {
-      product.setCategoryType(CategoryType.fromString(form.getCategoryType()));
+      product.setCategoryType(form.getCategoryType());
     }
   }
 
-  private void setProductDetailFromForm(ProductDetailUpdateForm form, ProductDetail detail, Product product) {
+  private void setProductDetailFromForm(ProductDetailUpdateForm form,
+                                        ProductDetail detail,
+                                        Product product) {
     if (form.getChangeSize() != null) {
       for (ProductDetail productDetail : product.getDetails()) {
         if (productDetail.getSize().equals(form.getChangeSize())) {
@@ -170,20 +140,7 @@ public class ProductService {
       }
       detail.setSize(form.getChangeSize().toUpperCase());
     }
-    if (form.getQuantity() != null) {
-      detail.setQuantity(Integer.valueOf(form.getQuantity()));
-    }
+    detail.setQuantity(form.getQuantity());
   }
 
-  private ProductDetail findProductDetailByProductAndSize(Product product, String size) {
-    return product.getDetails().stream()
-            .filter(detail -> detail.getSize().equals(size.toUpperCase()))
-            .findFirst()
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_SIZE));
-  }
-
-  private Product findProductByCode(String code) {
-    return productRepository.findByCode(code)
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_PRODUCT));
-  }
 }
