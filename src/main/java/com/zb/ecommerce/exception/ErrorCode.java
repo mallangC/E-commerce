@@ -26,7 +26,6 @@ public enum ErrorCode {
   NOT_ALLOW_BLANK(HttpStatus.BAD_REQUEST, "이메일값이 비어있습니다."),
 
 
-
   ALREADY_ADDED_PRODUCT(HttpStatus.BAD_REQUEST, "이미 추가된 상품입니다."),
   NOT_FOUND_PRODUCT(HttpStatus.BAD_REQUEST, "상품을 찾을 수 없습니다."),
   ALREADY_ADDED_SIZE(HttpStatus.BAD_REQUEST, "이미 추가된 사이즈입니다."),
@@ -35,6 +34,9 @@ public enum ErrorCode {
 
 
   NOT_FOUND_CART_PRODUCT(HttpStatus.BAD_REQUEST, "카트에 담긴 상품을 찾을 수 없습니다."),
+  
+  
+  WRONG_FILE(HttpStatus.BAD_REQUEST, "파일을 확인해주세요"),
 
   ;
 

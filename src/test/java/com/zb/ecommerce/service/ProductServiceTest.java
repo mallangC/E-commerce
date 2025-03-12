@@ -18,7 +18,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +36,9 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
+
+  @Mock
+  S3Service s3Service;
 
   @Mock
   private ProductRepository productRepository;
@@ -57,15 +63,17 @@ class ProductServiceTest {
           .quantity(5)
           .build();
 
+  MultipartFile file = new MockMultipartFile("file", "test.txt", "text/plain", "test content".getBytes());
+
 
   @Test
   @DisplayName("상품 추가 성공")
-  void addProduct() {
+  void addProduct() throws IOException {
     //given
     given(productRepository.existsByCode(anyString()))
             .willReturn(false);
     //when
-    productService.addProduct(productAddForm);
+    productService.addProduct(file, productAddForm);
     //then
     verify(productRepository, times(1)).save(any());
   }
@@ -78,15 +86,19 @@ class ProductServiceTest {
             .willReturn(true);
     try {
       //when
-      productService.addProduct(productAddForm);
+      productService.addProduct(file, productAddForm);
     } catch (CustomException e) {
       //then
       assertEquals(ALREADY_ADDED_PRODUCT, e.getErrorCode());
       verify(productRepository, times(0)).save(any());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
-  //-------
+
+//  -------
+
 
   @Test
   @DisplayName("상품 디테일 추가 성공")
@@ -188,7 +200,7 @@ class ProductServiceTest {
 
   @Test
   @DisplayName("디테일 확인(디테일 없음)")
-  void getProductDetailFailure() {
+  void getProductDetailFailure1() {
     //given
     given(productRepository.searchByCode(anyString()))
             .willReturn(Product.builder()
@@ -202,11 +214,10 @@ class ProductServiceTest {
     assertEquals(new ArrayList<>(), result.getDetails());
   }
 
-  //-------
 
   @Test
   @DisplayName("상품 수정")
-  void updateProduct() {
+  void updateProduct() throws IOException {
     //given
     given(productRepository.searchByCode(anyString()))
             .willReturn(Product.builder()
@@ -227,7 +238,7 @@ class ProductServiceTest {
             .categoryType(CategoryType.SHOES)
             .build();
     //when
-    ProductDto result = productService.updateProduct(form);
+    ProductDto result = productService.updateProduct(file, form);
     //then
     assertEquals("신발", result.getName());
     assertEquals("shoes_mk1", result.getCode());
@@ -238,7 +249,7 @@ class ProductServiceTest {
 
   @Test
   @DisplayName("상품 수정(price, name 빼고 진행)")
-  void updateProductFailure1() {
+  void updateProductFailure1() throws IOException {
     //given
     given(productRepository.searchByCode(anyString()))
             .willReturn(Product.builder()
@@ -257,7 +268,7 @@ class ProductServiceTest {
             .description("너무나 이쁜 신발")
             .build();
     //when
-    ProductDto result = productService.updateProduct(form);
+    ProductDto result = productService.updateProduct(file, form);
     //then
     assertEquals("벨트", result.getName());
     assertEquals("shoes_mk1", result.getCode());

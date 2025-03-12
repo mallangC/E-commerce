@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 import static com.zb.ecommerce.model.QCartProduct.cartProduct;
 import static com.zb.ecommerce.model.QMember.member;
+import static com.zb.ecommerce.model.QProduct.product;
 
 @RequiredArgsConstructor
 public class MemberRepositoryCustomImpl implements MemberRepositoryCustom {
@@ -17,6 +18,7 @@ public class MemberRepositoryCustomImpl implements MemberRepositoryCustom {
   public Member searchByEmail(String email) {
     Member searchMember = queryFactory.selectFrom(member)
             .leftJoin(member.cart, cartProduct).fetchJoin()
+            .leftJoin(cartProduct.product, product).fetchJoin()
             .where(member.email.eq(email))
             .fetchOne();
 
