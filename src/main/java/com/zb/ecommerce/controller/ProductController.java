@@ -25,10 +25,14 @@ public class ProductController {
 
   @PostMapping("/product")
   public ResponseEntity<String> addProduct(
-          @RequestPart(required = false) MultipartFile file,
-          @Valid @RequestPart ProductAddForm form) throws IOException {
-    productService.addProduct(file, form);
+          @Valid @RequestBody ProductAddForm form) {
+    productService.addProduct(form);
     return ResponseEntity.ok(form.getName() + " 상품이 추가되었습니다.");
+  }
+
+  @PostMapping("/product/image")
+  public ResponseEntity<String> addProductImage(MultipartFile file) throws IOException {
+    return ResponseEntity.ok(productService.addProductImage(file));
   }
 
   @PostMapping("/product/detail")
@@ -55,9 +59,8 @@ public class ProductController {
 
   @PatchMapping("/product")
   public ResponseEntity<ProductDto> updateProduct(
-          @RequestPart(required = false) MultipartFile file,
-          @Valid @RequestPart ProductUpdateForm form) throws IOException {
-    return ResponseEntity.ok(productService.updateProduct(file, form));
+          @Valid @RequestBody ProductUpdateForm form) {
+    return ResponseEntity.ok(productService.updateProduct(form));
   }
 
   @PatchMapping("/product/detail")

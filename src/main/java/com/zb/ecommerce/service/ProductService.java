@@ -32,17 +32,17 @@ public class ProductService {
   private final ProductDetailRepository productDetailRepository;
   private final S3Service s3Service;
 
-  public void addProduct(MultipartFile file, ProductAddForm form) throws IOException {
+  public void addProduct(ProductAddForm form) {
     boolean isExist = productRepository.existsByCode(form.getCode());
 
     if (isExist) {
       throw new CustomException(ErrorCode.ALREADY_ADDED_PRODUCT);
     }
-    Product product = Product.from(form);
-    if (file != null) {
-      product.setImage(fileNameChange(file, product));
-    }
-    productRepository.save(product);
+    productRepository.save(Product.from(form));
+  }
+
+  public String addProductImage(MultipartFile file) throws IOException {
+    return s3Service.uploadFile(file.getInputStream(), file.getOriginalFilename(), file.getContentType());
   }
 
   public void addProductDetail(ProductDetailAddForm form) {
@@ -65,18 +65,18 @@ public class ProductService {
   }
 
   public PageDto<ProductDto> getAllSearchProduct(int page,
-                                     String keyword,
-                                     CategoryType category,
-                                     String sortType,
-                                     boolean asc) {
+                                                 String keyword,
+                                                 CategoryType category,
+                                                 String sortType,
+                                                 boolean asc) {
 
     return PageDto.from(productRepository.searchAll(page, keyword, category, sortType, asc));
   }
 
   @Transactional
-  public ProductDto updateProduct(MultipartFile file, ProductUpdateForm form) throws IOException {
+  public ProductDto updateProduct(ProductUpdateForm form) {
     Product product = productRepository.searchByCode(form.getCode());
-    setProductFromForm(form, product, file);
+    setProductFromForm(form, product);
     return ProductDto.from(product);
   }
 
@@ -118,7 +118,7 @@ public class ProductService {
     return ProductDetailDto.from(productDetail);
   }
 
-  private void setProductFromForm(ProductUpdateForm form, Product product, MultipartFile file) throws IOException {
+  private void setProductFromForm(ProductUpdateForm form, Product product) {
     if (form.getName() != null && !productRepository.existsByName(form.getName())) {
       product.setName(form.getName());
     }
@@ -134,21 +134,9 @@ public class ProductService {
     if (form.getCategoryType() != null) {
       product.setCategoryType(form.getCategoryType());
     }
-    if (file != null) {
+    if (form.getImage() != null) {
       s3Service.deleteFile(product.getImage());
-      product.setImage(fileNameChange(file, product));
-    }
-  }
-
-
-  private String fileNameChange(MultipartFile file, Product product) throws IOException {
-    String fileName = file.getOriginalFilename();
-    if (fileName != null && fileName.contains(".")) {
-      int index = fileName.lastIndexOf(".");
-      String newName = product.getCode() + fileName.substring(index);
-      return s3Service.uploadFile(file.getInputStream(), newName, file.getContentType());
-    } else {
-      throw new CustomException(ErrorCode.WRONG_FILE);
+      product.setImage(form.getImage());
     }
   }
 

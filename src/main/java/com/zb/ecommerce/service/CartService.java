@@ -78,6 +78,12 @@ public class CartService {
 
     int quantity = form.getQuantity();
 
+    if (quantity == 0) {
+      cartProduct.setQuantity(quantity);
+      deleteProductToCart(form.getId());
+      return CartProductDto.from(cartProduct);
+    }
+
     if (quantity > productDetail.getQuantity()) {
       throw new CustomException(ErrorCode.NOT_ENOUGH_PRODUCT);
     }

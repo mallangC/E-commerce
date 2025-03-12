@@ -16,16 +16,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class S3Service {
   private final S3Client s3Client;
+  private final String keyPrefix = "images/";
 
   @Value("${aws.bucket}")
   private String bucketName;
 
   public String uploadFile(InputStream inputStream, String fileName, String contentType) throws IOException {
-    String newFileName = UUID.randomUUID() + fileName;
+    String newFileName = UUID.randomUUID() + "-" + fileName;
 
     PutObjectRequest putObjectRequest = PutObjectRequest.builder()
             .bucket(bucketName)
-            .key("images/"+newFileName)
+            .key(keyPrefix + newFileName)
             .contentType(contentType)
             .build();
 
@@ -35,9 +36,10 @@ public class S3Service {
   }
 
   public void deleteFile(String fileName) {
+    String newFileName = fileName.substring(38);
     DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
             .bucket(bucketName)
-            .key("images/"+fileName)
+            .key(keyPrefix + newFileName)
             .build();
     s3Client.deleteObject(deleteObjectRequest);
   }

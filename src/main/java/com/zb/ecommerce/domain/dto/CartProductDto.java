@@ -7,7 +7,6 @@ import lombok.*;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 public class CartProductDto {
   private Long id;
   private String productName;

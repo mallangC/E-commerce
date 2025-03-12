@@ -35,7 +35,8 @@ public class Product extends BaseEntity {
             .code(form.getCode())
             .categoryType(form.getCategory())
             .description(form.getDescription())
-            .price(Long.valueOf(form.getPrice()))
+            .price(form.getPrice())
+            .image(form.getImage())
             .build();
   }
 }

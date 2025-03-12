@@ -30,13 +30,8 @@ public class CartController {
   }
 
   @PatchMapping("/cart")
-  public ResponseEntity<String> updateCartProduct(@Valid @RequestBody CartUpdateForm form) {
-    if (form.getQuantity() == 0){
-      long id = form.getId();
-      cartService.deleteProductToCart(id);
-      return ResponseEntity.ok("카트에 담긴 " + id + "상품이 삭제되었습니다.");
-    }
-    return ResponseEntity.ok(cartService.updateProductToCart(form).toString());
+  public ResponseEntity<CartProductDto> updateCartProduct(@Valid @RequestBody CartUpdateForm form) {
+    return ResponseEntity.ok(cartService.updateProductToCart(form));
   }
 
   @DeleteMapping("/cart")

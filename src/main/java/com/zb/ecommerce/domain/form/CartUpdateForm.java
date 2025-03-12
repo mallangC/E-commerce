@@ -13,6 +13,6 @@ public class CartUpdateForm {
   private Long id;
   @NotBlank(message = "상품 사이즈를 입력해주세요")
   private String size;
-  @Min(value = 1, message = "1이상의 숫자만 입력해주세요")
+  @Min(value = 0, message = "숫자만 입력해주세요")
   private Integer quantity;
 }
