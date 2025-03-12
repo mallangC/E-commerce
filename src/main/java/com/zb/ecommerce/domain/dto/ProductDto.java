@@ -20,7 +20,9 @@ public class ProductDto implements Serializable {
   private CategoryType categoryType;
   private String description;
   private Long price;
+  private String image;
   private List<ProductDetailDto> details;
+
 
   public static ProductDto from(Product product) {
     return ProductDto.builder()
@@ -29,6 +31,7 @@ public class ProductDto implements Serializable {
             .description(product.getDescription())
             .price(product.getPrice())
             .categoryType(product.getCategoryType())
+            .image(product.getImage())
             .details(product.getDetails().stream().map(ProductDetailDto::from).toList())
             .build();
   }
@@ -40,6 +43,7 @@ public class ProductDto implements Serializable {
             .description(product.getDescription())
             .price(product.getPrice())
             .categoryType(product.getCategoryType())
+            .image(product.getImage())
             .build();
 
   }

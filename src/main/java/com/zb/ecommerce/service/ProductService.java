@@ -17,7 +17,9 @@ import com.zb.ecommerce.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.zb.ecommerce.exception.ErrorCode.NOT_FOUND_SIZE;
@@ -28,6 +30,7 @@ public class ProductService {
 
   private final ProductRepository productRepository;
   private final ProductDetailRepository productDetailRepository;
+  private final S3Service s3Service;
 
   public void addProduct(ProductAddForm form) {
     boolean isExist = productRepository.existsByCode(form.getCode());
@@ -35,8 +38,11 @@ public class ProductService {
     if (isExist) {
       throw new CustomException(ErrorCode.ALREADY_ADDED_PRODUCT);
     }
-
     productRepository.save(Product.from(form));
+  }
+
+  public String addProductImage(MultipartFile file) throws IOException {
+    return s3Service.uploadFile(file.getInputStream(), file.getOriginalFilename(), file.getContentType());
   }
 
   public void addProductDetail(ProductDetailAddForm form) {
@@ -58,11 +64,11 @@ public class ProductService {
     return ProductDto.from(product);
   }
 
-  public PageDto getAllSearchProduct(int page,
-                                     String keyword,
-                                     CategoryType category,
-                                     String sortType,
-                                     boolean asc) {
+  public PageDto<ProductDto> getAllSearchProduct(int page,
+                                                 String keyword,
+                                                 CategoryType category,
+                                                 String sortType,
+                                                 boolean asc) {
 
     return PageDto.from(productRepository.searchAll(page, keyword, category, sortType, asc));
   }
@@ -92,6 +98,7 @@ public class ProductService {
   @Transactional
   public ProductDto deleteProduct(String code) {
     Product product = productRepository.searchByCode(code);
+    s3Service.deleteFile(product.getImage());
     productRepository.deleteByCode(code);
     return ProductDto.from(product);
   }
@@ -126,6 +133,10 @@ public class ProductService {
     }
     if (form.getCategoryType() != null) {
       product.setCategoryType(form.getCategoryType());
+    }
+    if (form.getImage() != null) {
+      s3Service.deleteFile(product.getImage());
+      product.setImage(form.getImage());
     }
   }
 

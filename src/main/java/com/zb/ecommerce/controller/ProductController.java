@@ -13,6 +13,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RequiredArgsConstructor
 @RestController
@@ -21,9 +24,15 @@ public class ProductController {
   private final ProductService productService;
 
   @PostMapping("/product")
-  public ResponseEntity<String> addProduct(@Valid @RequestBody ProductAddForm form) {
+  public ResponseEntity<String> addProduct(
+          @Valid @RequestBody ProductAddForm form) {
     productService.addProduct(form);
     return ResponseEntity.ok(form.getName() + " 상품이 추가되었습니다.");
+  }
+
+  @PostMapping("/product/image")
+  public ResponseEntity<String> addProductImage(MultipartFile file) throws IOException {
+    return ResponseEntity.ok(productService.addProductImage(file));
   }
 
   @PostMapping("/product/detail")
@@ -38,7 +47,7 @@ public class ProductController {
   }
 
   @GetMapping("/products/search")
-  public ResponseEntity<PageDto> getAllSearchProduct(
+  public ResponseEntity<PageDto<ProductDto>> getAllSearchProduct(
           @RequestParam(defaultValue = "0") int page,
           @RequestParam(required = false) String keyword,
           @RequestParam(required = false) CategoryType category,

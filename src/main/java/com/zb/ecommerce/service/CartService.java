@@ -1,6 +1,7 @@
 package com.zb.ecommerce.service;
 
 import com.zb.ecommerce.domain.dto.CartProductDto;
+import com.zb.ecommerce.domain.dto.PageDto;
 import com.zb.ecommerce.domain.form.CartAddForm;
 import com.zb.ecommerce.domain.form.CartUpdateForm;
 import com.zb.ecommerce.exception.CustomException;
@@ -39,10 +40,14 @@ public class CartService {
     String size = form.getSize().toUpperCase();
     ProductDetail productDetail = sizeCheck(product, size);
 
-    boolean isExist = member.getCart().stream()
-            .anyMatch(item -> Objects.equals(item.getProduct().getId(), product.getId()));
+    List<CartProduct> searchCart = member.getCart().stream()
+            .filter(item -> Objects.equals(item.getProduct().getId(), product.getId()))
+            .toList();
 
-    if (isExist) {
+    boolean isExistSize = searchCart.stream()
+            .anyMatch(item -> item.getSize().equals(productDetail.getSize()));
+
+    if (!searchCart.isEmpty() && isExistSize) {
       CartProduct cartProduct = quantityCheck(member, product, productDetail, size, quantity);
       return CartProductDto.from(cartProduct);
     }
@@ -55,24 +60,29 @@ public class CartService {
             .build()));
   }
 
-  @Cacheable(value = "cart", key = "'cart-all-'+#email")
-  public List<CartProductDto> getAllCartProducts(String email) {
-    Member member = memberRepository.searchByEmail(email);
-    return member.getCart().stream()
-            .map(CartProductDto::from)
-            .toList();
+  @Cacheable(value = "cart", key = "'cart-all-'+ #page + #email")
+  public PageDto<CartProductDto> getAllCartProducts(int page, String email) {
+    if (email.equals("anonymousUser")) {
+      return PageDto.empty();
+    }
+    return PageDto.from(cartProductRepository.searchCartProducts(page, email));
   }
 
-  @Transactional
   @CacheEvict(value = "cart", allEntries = true)
+  @Transactional
   public CartProductDto updateProductToCart(CartUpdateForm form) {
-    CartProduct cartProduct = cartProductRepository.findById(form.getId())
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CART_PRODUCT));
+    CartProduct cartProduct = cartProductRepository.searchCartProduct(form.getId());
     Product product = cartProduct.getProduct();
     String size = form.getSize().toUpperCase();
     ProductDetail productDetail = sizeCheck(product, size);
 
     int quantity = form.getQuantity();
+
+    if (quantity == 0) {
+      cartProduct.setQuantity(quantity);
+      deleteProductToCart(form.getId());
+      return CartProductDto.from(cartProduct);
+    }
 
     if (quantity > productDetail.getQuantity()) {
       throw new CustomException(ErrorCode.NOT_ENOUGH_PRODUCT);
@@ -81,8 +91,9 @@ public class CartService {
     return CartProductDto.from(cartProduct);
   }
 
-  @Transactional
+
   @CacheEvict(value = "cart", allEntries = true)
+  @Transactional
   public void deleteProductToCart(Long id) {
     boolean isExist = cartProductRepository.existsById(id);
     if (!isExist) {
@@ -96,7 +107,7 @@ public class CartService {
                                     ProductDetail productDetail,
                                     String size,
                                     int quantity) {
-    CartProduct cartProduct =  cartProductRepository.findByMemberAndProductAndSize(member, product, size)
+    CartProduct cartProduct = cartProductRepository.findByMemberAndProductAndSize(member, product, size)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CART_PRODUCT));
     if (cartProduct.getQuantity() + quantity > productDetail.getQuantity()) {
       throw new CustomException(ErrorCode.NOT_ENOUGH_PRODUCT);
@@ -105,7 +116,7 @@ public class CartService {
     return cartProduct;
   }
 
-  private ProductDetail sizeCheck(Product product, String size){
+  private ProductDetail sizeCheck(Product product, String size) {
     return product.getDetails().stream()
             .filter(detail -> detail.getSize().equals(size))
             .findFirst()

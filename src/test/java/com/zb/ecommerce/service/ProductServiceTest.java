@@ -35,6 +35,9 @@ import static org.mockito.Mockito.verify;
 class ProductServiceTest {
 
   @Mock
+  S3Service s3Service;
+
+  @Mock
   private ProductRepository productRepository;
 
   @Mock
@@ -47,7 +50,7 @@ class ProductServiceTest {
           .name("신발")
           .code("shoes_mk1")
           .description("너무나 이쁜 신발")
-          .price("89000")
+          .price(89000L)
           .category(CategoryType.SHOES)
           .build();
 
@@ -86,7 +89,9 @@ class ProductServiceTest {
     }
   }
 
-  //-------
+
+//  -------
+
 
   @Test
   @DisplayName("상품 디테일 추가 성공")
@@ -188,7 +193,7 @@ class ProductServiceTest {
 
   @Test
   @DisplayName("디테일 확인(디테일 없음)")
-  void getProductDetailFailure() {
+  void getProductDetailFailure1() {
     //given
     given(productRepository.searchByCode(anyString()))
             .willReturn(Product.builder()
@@ -202,7 +207,6 @@ class ProductServiceTest {
     assertEquals(new ArrayList<>(), result.getDetails());
   }
 
-  //-------
 
   @Test
   @DisplayName("상품 수정")

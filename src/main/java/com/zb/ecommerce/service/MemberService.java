@@ -16,7 +16,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.UUID;
 
 import static com.zb.ecommerce.exception.ErrorCode.*;
@@ -159,7 +158,6 @@ public class MemberService {
             .addressDetail(form.getAddressDetail())
             .role(MemberType.ROLE_MEMBER)
             .isEmailVerified(false)
-            .cart(new ArrayList<>())
             .build();
   }
 

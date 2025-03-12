@@ -18,4 +18,5 @@ public class ProductUpdateForm {
   private String description;
   @Pattern(regexp = "^.{0}$|^.{4,}$", message = "1000원 이상의 숫자만 입력해주세요")
   private String price;
+  private String image;
 }

@@ -1,6 +1,7 @@
 package com.zb.ecommerce.controller;
 
 import com.zb.ecommerce.domain.dto.CartProductDto;
+import com.zb.ecommerce.domain.dto.PageDto;
 import com.zb.ecommerce.domain.form.CartAddForm;
 import com.zb.ecommerce.domain.form.CartUpdateForm;
 import com.zb.ecommerce.service.CartService;
@@ -9,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,9 +24,9 @@ public class CartController {
   }
 
   @GetMapping("/carts")
-  public ResponseEntity<List<CartProductDto>> getCartProducts() {
+  public ResponseEntity<PageDto<CartProductDto>> getCartProducts(@RequestParam int page) {
     String email = SecurityContextHolder.getContext().getAuthentication().getName();
-    return ResponseEntity.ok(cartService.getAllCartProducts(email));
+    return ResponseEntity.ok(cartService.getAllCartProducts(page, email));
   }
 
   @PatchMapping("/cart")
