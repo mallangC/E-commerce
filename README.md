@@ -60,7 +60,7 @@
   - 가나다순, 가격순, 카테고리순으로 정렬이 가능하다.
  
 ## ERD
-![Image](https://github.com/user-attachments/assets/9d3db335-f56d-4635-b56e-25ad4b25f6db)
+![Image](https://github.com/user-attachments/assets/47dba151-1090-49f2-9624-1c210a95403e)
 
 
 ## 프로젝트 목표
@@ -77,5 +77,3 @@
 7. Redis
 8. Lombok
 9. Java Mail Sender
-10. AWS S3
-
