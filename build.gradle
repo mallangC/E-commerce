@@ -75,10 +75,14 @@ tasks.register('jacocoTestReports', JacocoReport) {
         html.outputLocation.set(file("$buildDir/reports/jacoco/html"))
         xml.outputLocation.set(file("$buildDir/reports/jacoco/jacocoTestReport.xml"))
 
-        def Qdomains = []
-        for (qPattern in "**/QA*".."**/QZ*") {
-            Qdomains.add(qPattern + "*")
-        }
+        def Qdomains = [
+                '**/QA*', '**/QB*', '**/QC*', '**/QD*', '**/QE*',
+                '**/QF*', '**/QG*', '**/QH*', '**/QI*', '**/QJ*',
+                '**/QK*', '**/QL*', '**/QM*', '**/QN*', '**/QO*',
+                '**/QP*', '**/QQ*', '**/QR*', '**/QS*', '**/QT*',
+                '**/QU*', '**/QV*', '**/QW*', '**/QX*', '**/QY*',
+                '**/QZ*'
+        ]
 
         afterEvaluate {
             classDirectories.setFrom(files(classDirectories.files.collect {
