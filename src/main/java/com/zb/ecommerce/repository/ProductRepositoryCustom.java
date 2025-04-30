@@ -6,9 +6,9 @@ import com.zb.ecommerce.model.Product;
 import org.springframework.data.domain.Page;
 
 public interface ProductRepositoryCustom {
-  Page<ProductDto> searchAll(int page, String keyword,
-                             CategoryType category, String sortType, boolean asc);
+  Page<ProductDto> searchAllProduct(int page, String keyword,
+                                    CategoryType category, String sortType, boolean asc);
 
-  Product searchByCode(String code);
+  Product searchProductByCode(String code);
 
 }

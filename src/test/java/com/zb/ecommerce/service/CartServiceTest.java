@@ -1,7 +1,7 @@
 package com.zb.ecommerce.service;
 
 import com.zb.ecommerce.domain.dto.CartProductDto;
-import com.zb.ecommerce.domain.dto.PageDto;
+import com.zb.ecommerce.response.PaginatedResponse;
 import com.zb.ecommerce.domain.form.CartAddForm;
 import com.zb.ecommerce.domain.form.CartUpdateForm;
 import com.zb.ecommerce.domain.type.CategoryType;
@@ -62,14 +62,14 @@ class CartServiceTest {
   @DisplayName("카트 상품 추가")
   void addProductToCart1() {
     //given
-    given(memberRepository.searchByEmail(anyString()))
+    given(memberRepository.searchMemberByEmail(anyString()))
             .willReturn(Member.builder()
                     .id(1L)
                     .email("test@test.com")
                     .cart(new ArrayList<>())
                     .build());
 
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
@@ -118,7 +118,7 @@ class CartServiceTest {
   @DisplayName("카트 상품 추가(이미 카트에 상품이 있음)")
   void addProductToCart2() {
     //given
-    given(memberRepository.searchByEmail(anyString()))
+    given(memberRepository.searchMemberByEmail(anyString()))
             .willReturn(Member.builder()
                     .id(1L)
                     .email("test@test.com")
@@ -141,7 +141,7 @@ class CartServiceTest {
                             .build()))
                     .build());
 
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
@@ -190,7 +190,7 @@ class CartServiceTest {
   @DisplayName("카트 상품 추가 실패(잘못된 이메일 입력)")
   void addProductToCartFailure1() {
     //given
-    given(memberRepository.searchByEmail(anyString()))
+    given(memberRepository.searchMemberByEmail(anyString()))
             .willThrow(new CustomException(NOT_FOUND_MEMBER));
 
     try {
@@ -207,13 +207,13 @@ class CartServiceTest {
   @DisplayName("카트 상품 추가 실패(잘못된 코드 입력)")
   void addProductToCartFailure2() {
     //given
-    given(memberRepository.searchByEmail(anyString()))
+    given(memberRepository.searchMemberByEmail(anyString()))
             .willReturn(Member.builder()
                     .id(1L)
                     .email("test@test.com")
                     .build());
 
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willThrow(new CustomException(NOT_FOUND_PRODUCT));
     try {
       //when
@@ -229,13 +229,13 @@ class CartServiceTest {
   @DisplayName("카트 상품 추가 실패(잘못된 사이즈 입력)")
   void addProductToCartFailure3() {
     //given
-    given(memberRepository.searchByEmail(anyString()))
+    given(memberRepository.searchMemberByEmail(anyString()))
             .willReturn(Member.builder()
                     .id(1L)
                     .email("test@test.com")
                     .build());
 
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
@@ -264,7 +264,7 @@ class CartServiceTest {
   @DisplayName("카트 상품 추가 실패(이미 카트에 상품이 있고 상품 갯수가 부족함)")
   void addProductToCartFailure4() {
     //given
-    given(memberRepository.searchByEmail(anyString()))
+    given(memberRepository.searchMemberByEmail(anyString()))
             .willReturn(Member.builder()
                     .id(1L)
                     .email("test@test.com")
@@ -287,7 +287,7 @@ class CartServiceTest {
                             .build()))
                     .build());
 
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
@@ -369,7 +369,7 @@ class CartServiceTest {
                     .build())),pageable, 2));
 
     //when
-    PageDto<CartProductDto> result = cartService.getAllCartProducts(0, "email");
+    PaginatedResponse<CartProductDto> result = cartService.getAllCartProducts(0, "email");
     //then
     assertEquals(2, result.getTotalElements());
     assertEquals(1L, result.getContents().get(0).getId());
@@ -386,7 +386,7 @@ class CartServiceTest {
     given(cartProductRepository.searchCartProducts(anyInt(), anyString()))
             .willReturn(new PageImpl<>(new ArrayList<>()));
     //when
-    PageDto<CartProductDto> result = cartService.getAllCartProducts(0,"email");
+    PaginatedResponse<CartProductDto> result = cartService.getAllCartProducts(0,"email");
     //then
     assertEquals(0, result.getTotalElements());
   }

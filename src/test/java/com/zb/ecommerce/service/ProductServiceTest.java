@@ -97,7 +97,7 @@ class ProductServiceTest {
   @DisplayName("상품 디테일 추가 성공")
   void addProductDetail() {
     //given
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
@@ -117,7 +117,7 @@ class ProductServiceTest {
   @DisplayName("상품 디테일 추가 실패(상품을 찾을 수 없음)")
   void addProductDetailFailure1() {
     //given
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
@@ -141,7 +141,7 @@ class ProductServiceTest {
   @DisplayName("상품 디테일 추가 실패(이미 추가된 상품 디테일)")
   void addProductDetailFailure2() {
     //given
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .id(1L)
                     .name("신발")
@@ -170,7 +170,7 @@ class ProductServiceTest {
   @DisplayName("디테일 확인")
   void getProductDetail() {
     //given
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .name("신발")
                     .code("shoes_mk1")
@@ -195,7 +195,7 @@ class ProductServiceTest {
   @DisplayName("디테일 확인(디테일 없음)")
   void getProductDetailFailure1() {
     //given
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .name("신발")
                     .price(89000L)
@@ -212,7 +212,11 @@ class ProductServiceTest {
   @DisplayName("상품 수정")
   void updateProduct() {
     //given
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.existsByName(anyString()))
+            .willReturn(false);
+    given(productRepository.existsByCode(anyString()))
+            .willReturn(false);
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .code("belt_mk1")
                     .name("벨트")
@@ -224,10 +228,10 @@ class ProductServiceTest {
 
     ProductUpdateForm form = ProductUpdateForm.builder()
             .name("신발")
-            .code("belt_mk1")
+            .code("shoes_mk1")
             .changeCode("shoes_mk1")
             .description("너무나 이쁜 신발")
-            .price("89000")
+            .price(89000L)
             .categoryType(CategoryType.SHOES)
             .build();
     //when
@@ -244,7 +248,7 @@ class ProductServiceTest {
   @DisplayName("상품 수정(price, name 빼고 진행)")
   void updateProductFailure1() {
     //given
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .code("belt_mk1")
                     .name("벨트")
@@ -276,7 +280,7 @@ class ProductServiceTest {
   @DisplayName("디테일 수정")
   void updateProductDetail() {
     //given
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .name("벨트")
                     .categoryType(CategoryType.BELT)
@@ -305,7 +309,7 @@ class ProductServiceTest {
   @DisplayName("디테일 수정(quantity만 수정)")
   void updateProductDetail2() {
     //given
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .name("벨트")
                     .categoryType(CategoryType.BELT)
@@ -333,7 +337,7 @@ class ProductServiceTest {
   @DisplayName("디테일 수정 실패(맞는 size가 없음)")
   void updateProductDetailFailure() {
     //given
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .name("벨트")
                     .categoryType(CategoryType.BELT)
@@ -365,7 +369,7 @@ class ProductServiceTest {
   @DisplayName("상품 삭제")
   void deleteProduct() {
     //given
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .name("벨트")
                     .code("belt_mk1")
@@ -379,7 +383,7 @@ class ProductServiceTest {
     //when
     productService.deleteProduct("belt_mk1");
     //then
-    verify(productRepository, times(1)).searchByCode(anyString());
+    verify(productRepository, times(1)).searchProductByCode(anyString());
     verify(productRepository, times(1)).deleteByCode(anyString());
   }
 
@@ -389,7 +393,7 @@ class ProductServiceTest {
   @DisplayName("상품 디테일 삭제")
   void deleteProductDetail() {
     //given
-    given(productRepository.searchByCode(anyString()))
+    given(productRepository.searchProductByCode(anyString()))
             .willReturn(Product.builder()
                     .name("벨트")
                     .code("belt_mk1")

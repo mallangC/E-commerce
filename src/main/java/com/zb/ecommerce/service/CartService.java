@@ -1,7 +1,7 @@
 package com.zb.ecommerce.service;
 
 import com.zb.ecommerce.domain.dto.CartProductDto;
-import com.zb.ecommerce.domain.dto.PageDto;
+import com.zb.ecommerce.response.PaginatedResponse;
 import com.zb.ecommerce.domain.form.CartAddForm;
 import com.zb.ecommerce.domain.form.CartUpdateForm;
 import com.zb.ecommerce.exception.CustomException;
@@ -33,8 +33,8 @@ public class CartService {
   @CacheEvict(value = "cart", allEntries = true)
   @Transactional
   public CartProductDto addProductToCart(String email, CartAddForm form) {
-    Member member = memberRepository.searchByEmail(email);
-    Product product = productRepository.searchByCode(form.getProductCode());
+    Member member = memberRepository.searchMemberByEmail(email);
+    Product product = productRepository.searchProductByCode(form.getProductCode());
     int quantity = form.getQuantity();
 
     String size = form.getSize().toUpperCase();
@@ -61,11 +61,11 @@ public class CartService {
   }
 
   @Cacheable(value = "cart", key = "'cart-all-'+ #page + #email")
-  public PageDto<CartProductDto> getAllCartProducts(int page, String email) {
+  public PaginatedResponse<CartProductDto> getAllCartProducts(int page, String email) {
     if (email.equals("anonymousUser")) {
-      return PageDto.empty();
+      return PaginatedResponse.empty();
     }
-    return PageDto.from(cartProductRepository.searchCartProducts(page, email));
+    return PaginatedResponse.from(cartProductRepository.searchCartProducts(page, email));
   }
 
   @CacheEvict(value = "cart", allEntries = true)
@@ -77,20 +77,17 @@ public class CartService {
     ProductDetail productDetail = sizeCheck(product, size);
 
     int quantity = form.getQuantity();
-
     if (quantity == 0) {
-      cartProduct.setQuantity(quantity);
+      cartProduct.changeQuantity(quantity);
       deleteProductToCart(form.getId());
       return CartProductDto.from(cartProduct);
     }
-
     if (quantity > productDetail.getQuantity()) {
       throw new CustomException(ErrorCode.NOT_ENOUGH_PRODUCT);
     }
-    cartProduct.setQuantity(quantity);
+    cartProduct.changeQuantity(quantity);
     return CartProductDto.from(cartProduct);
   }
-
 
   @CacheEvict(value = "cart", allEntries = true)
   @Transactional
@@ -112,7 +109,7 @@ public class CartService {
     if (cartProduct.getQuantity() + quantity > productDetail.getQuantity()) {
       throw new CustomException(ErrorCode.NOT_ENOUGH_PRODUCT);
     }
-    cartProduct.setQuantity(cartProduct.getQuantity() + quantity);
+    cartProduct.addQuantity(quantity);
     return cartProduct;
   }
 

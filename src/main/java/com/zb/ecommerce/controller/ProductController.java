@@ -1,6 +1,6 @@
 package com.zb.ecommerce.controller;
 
-import com.zb.ecommerce.domain.dto.PageDto;
+import com.zb.ecommerce.response.PaginatedResponse;
 import com.zb.ecommerce.domain.dto.ProductDetailDto;
 import com.zb.ecommerce.domain.dto.ProductDto;
 import com.zb.ecommerce.domain.form.ProductAddForm;
@@ -47,7 +47,7 @@ public class ProductController {
   }
 
   @GetMapping("/products/search")
-  public ResponseEntity<PageDto<ProductDto>> getAllSearchProduct(
+  public ResponseEntity<PaginatedResponse<ProductDto>> getAllSearchProduct(
           @RequestParam(defaultValue = "0") int page,
           @RequestParam(required = false) String keyword,
           @RequestParam(required = false) CategoryType category,

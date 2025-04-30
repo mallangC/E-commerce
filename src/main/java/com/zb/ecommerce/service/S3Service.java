@@ -30,7 +30,6 @@ public class S3Service {
             .contentType(contentType)
             .build();
 
-    System.out.println(contentType);
     s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, inputStream.available()));
     return "https://d2p686p8ijr9ga.cloudfront.net/" + newFileName;
   }

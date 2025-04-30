@@ -1,6 +1,6 @@
 package com.zb.ecommerce.service;
 
-import com.zb.ecommerce.domain.dto.PageDto;
+import com.zb.ecommerce.response.PaginatedResponse;
 import com.zb.ecommerce.domain.dto.ProductDetailDto;
 import com.zb.ecommerce.domain.dto.ProductDto;
 import com.zb.ecommerce.domain.form.ProductAddForm;
@@ -46,7 +46,7 @@ public class ProductService {
   }
 
   public void addProductDetail(ProductDetailAddForm form) {
-    Product product = productRepository.searchByCode(form.getCode());
+    Product product = productRepository.searchProductByCode(form.getCode());
     if (!product.getDetails().isEmpty()) {
       List<ProductDetail> details = product.getDetails();
       for (ProductDetail detail : details) {
@@ -60,98 +60,70 @@ public class ProductService {
   }
 
   public ProductDto getProductDetail(String code) {
-    Product product = productRepository.searchByCode(code);
+    Product product = productRepository.searchProductByCode(code);
     return ProductDto.from(product);
   }
 
-  public PageDto<ProductDto> getAllSearchProduct(int page,
-                                                 String keyword,
-                                                 CategoryType category,
-                                                 String sortType,
-                                                 boolean asc) {
+  public PaginatedResponse<ProductDto> getAllSearchProduct(int page,
+                                                           String keyword,
+                                                           CategoryType category,
+                                                           String sortType,
+                                                           boolean asc) {
 
-    return PageDto.from(productRepository.searchAll(page, keyword, category, sortType, asc));
+    return PaginatedResponse.from(productRepository.searchAllProduct(page, keyword, category, sortType, asc));
   }
 
   @Transactional
   public ProductDto updateProduct(ProductUpdateForm form) {
-    Product product = productRepository.searchByCode(form.getCode());
-    setProductFromForm(form, product);
+    Product product = productRepository.searchProductByCode(form.getCode());
+    if (form.getImage() != null) {
+      s3Service.deleteFile(form.getImage());
+    }
+    boolean isExistName = productRepository.existsByName(form.getName());
+    boolean isExistCode = productRepository.existsByCode(form.getCode());
+    product.productUpdate(form, isExistName, isExistCode);
     return ProductDto.from(product);
   }
 
   @Transactional
   public ProductDetailDto updateProductDetail(ProductDetailUpdateForm form) {
-    Product product = productRepository.searchByCode(form.getCode());
-    ProductDetail productDetail = product.getDetails().stream()
-            .filter(detail -> detail.getSize().equals(form.getSize().toUpperCase()))
-            .findFirst().orElse(null);
-
-    if (productDetail == null) {
-      throw new CustomException(NOT_FOUND_SIZE);
+    Product product = productRepository.searchProductByCode(form.getCode());
+    ProductDetail productDetail = productDetailValidation(product, form.getSize());
+    if(form.getChangeSize() != null){
+      for (ProductDetail detail : product.getDetails()) {
+        if (detail.getSize().equals(form.getChangeSize())) {
+          throw new CustomException(ErrorCode.ALREADY_ADDED_SIZE);
+        }
+      }
     }
-
-    setProductDetailFromForm(form, productDetail, product);
+    productDetail.productDetailUpdate(form);
     return ProductDetailDto.from(productDetail);
   }
 
   @Transactional
   public ProductDto deleteProduct(String code) {
-    Product product = productRepository.searchByCode(code);
-    s3Service.deleteFile(product.getImage());
+    Product product = productRepository.searchProductByCode(code);
+    s3Service.deleteFile(product.getImageUrl());
     productRepository.deleteByCode(code);
     return ProductDto.from(product);
   }
 
   @Transactional
   public ProductDetailDto deleteProductDetail(ProductDetailUpdateForm form) {
-    Product product = productRepository.searchByCode(form.getCode());
-    ProductDetail productDetail = product.getDetails().stream()
-            .filter(detail -> detail.getSize().equals(form.getSize().toUpperCase()))
-            .findFirst().orElse(null);
-
-    if (productDetail == null) {
-      throw new CustomException(NOT_FOUND_SIZE);
-    }
-
+    Product product = productRepository.searchProductByCode(form.getCode());
+    ProductDetail productDetail = productDetailValidation(product, form.getSize());
     productDetailRepository.delete(productDetail);
     return ProductDetailDto.from(productDetail);
   }
 
-  private void setProductFromForm(ProductUpdateForm form, Product product) {
-    if (form.getName() != null && !productRepository.existsByName(form.getName())) {
-      product.setName(form.getName());
+  private ProductDetail productDetailValidation(Product product, String size){
+    ProductDetail productDetail = product.getDetails().stream()
+            .filter(detail -> detail.getSize().equals(size.toUpperCase()))
+            .findFirst().orElse(null);
+    if (productDetail == null) {
+      throw new CustomException(NOT_FOUND_SIZE);
     }
-    if (form.getChangeCode() != null && !productRepository.existsByCode(form.getCode())) {
-      product.setCode(form.getChangeCode());
-    }
-    if (form.getDescription() != null) {
-      product.setDescription(form.getDescription());
-    }
-    if (form.getPrice() != null) {
-      product.setPrice(Long.valueOf(form.getPrice()));
-    }
-    if (form.getCategoryType() != null) {
-      product.setCategoryType(form.getCategoryType());
-    }
-    if (form.getImage() != null) {
-      s3Service.deleteFile(product.getImage());
-      product.setImage(form.getImage());
-    }
-  }
-
-  private void setProductDetailFromForm(ProductDetailUpdateForm form,
-                                        ProductDetail detail,
-                                        Product product) {
-    if (form.getChangeSize() != null) {
-      for (ProductDetail productDetail : product.getDetails()) {
-        if (productDetail.getSize().equals(form.getChangeSize())) {
-          throw new CustomException(ErrorCode.ALREADY_ADDED_SIZE);
-        }
-      }
-      detail.setSize(form.getChangeSize().toUpperCase());
-    }
-    detail.setQuantity(form.getQuantity());
+    return productDetail;
   }
 
 }

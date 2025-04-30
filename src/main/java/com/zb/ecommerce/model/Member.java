@@ -1,5 +1,6 @@
 package com.zb.ecommerce.model;
 
+import com.zb.ecommerce.domain.form.MemberUpdateForm;
 import com.zb.ecommerce.domain.type.MemberType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Setter
 @ToString
 public class Member extends BaseEntity{
   @Id
@@ -29,4 +29,28 @@ public class Member extends BaseEntity{
   private Boolean isEmailVerified;
   @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<CartProduct> cart;
+
+  public void emailVerify(){
+    this.isEmailVerified = true;
+  }
+
+  public void memberChangePassword(String password){
+    this.password = password;
+  }
+
+  public void memberUpdate(MemberUpdateForm form){
+    if (form.getName() != null){
+      this.name = form.getName();
+    }
+    if (form.getPhone() != null){
+      this.phone = form.getPhone();
+    }
+    if (form.getAddress() != null){
+      this.address = form.getAddress();
+    }
+    if (form.getAddressDetail() != null){
+      this.addressDetail = form.getAddressDetail();
+    }
+  }
+
 }

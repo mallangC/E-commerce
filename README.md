@@ -54,11 +54,11 @@
   - 회원은 장바구니에 담긴 상품의 갯수를 늘리거나 줄일 수 있다.
   - 상품의 재고 보다 구매 갯수를 늘릴 수 없다.
   - 장바구니에 담긴 상품의 갯수를 0으로 수정하면 장바구니에서 삭제된다.
- 
+
 - 상품 검색 기능
   - 로그인하지 않은 사용자를 포함한 모든 사용자는 상품명이나 키워드로 상품을 검색을 할 수 있다.
   - 가나다순, 가격순, 카테고리순으로 정렬이 가능하다.
- 
+
 ## ERD
 ![Image](https://github.com/user-attachments/assets/9d3db335-f56d-4635-b56e-25ad4b25f6db)
 
@@ -68,13 +68,10 @@
 
 
 ## 기술 스택
-1. Spring Web
-2. Spring Jpa
-3. Spring Security
-4. JJWT
-5. Mockito
-6. PostgreSQL
-7. Redis
-8. Lombok
-9. Java Mail Sender
-10. AWS S3
+1. Spring JPA 
+2. Spring Security 
+3. JWT 
+4. PostgreSQL 
+5. Redis 
+6. Java Mail Sender 
+7. AWS S3

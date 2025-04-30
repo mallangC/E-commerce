@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.2'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
 }
 
 group = 'com.zb'
@@ -11,6 +12,10 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
+}
+
+jacoco {
+    toolVersion = '0.8.10'
 }
 
 configurations {
@@ -55,8 +60,48 @@ dependencies {
 
 sourceSets {
     named("main") {
-        java.srcDirs("src/main/java", "src/main/generated")
+        java.srcDirs("src/main/java")
     }
+}
+
+tasks.register('jacocoTestReports', JacocoReport) {
+    dependsOn tasks.named('test')
+
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        html.destination file("${buildDir}/reports/jacoco/html")
+        xml.destination file("${buildDir}/reports/jacoco/jacocoTestReport.xml")
+        html.outputLocation.set(file("$buildDir/reports/jacoco/html"))
+        xml.outputLocation.set(file("$buildDir/reports/jacoco/jacocoTestReport.xml"))
+
+        def Qdomains = [
+                '**/QA*', '**/QB*', '**/QC*', '**/QD*', '**/QE*',
+                '**/QF*', '**/QG*', '**/QH*', '**/QI*', '**/QJ*',
+                '**/QK*', '**/QL*', '**/QM*', '**/QN*', '**/QO*',
+                '**/QP*', '**/QQ*', '**/QR*', '**/QS*', '**/QT*',
+                '**/QU*', '**/QV*', '**/QW*', '**/QX*', '**/QY*',
+                '**/QZ*'
+        ]
+
+        classDirectories.setFrom(files(java.sourceSets.named("main").get().output.classesDirs.files.collect {
+            fileTree(dir: it) {
+                exclude(Qdomains)
+            }
+        }))
+    }
+
+    sourceDirectories.from(sourceSets.named("main").get().allSource.srcDirs)
+    classDirectories.from(sourceSets.named("main").get().output.classesDirs)
+    executionData.from(fileTree(project.buildDir) {
+        include("reports/jacoco/test.exec")
+    })
+}
+
+tasks.named('test') {
+    finalizedBy(tasks.named('jacocoTestReports'))
+    useJUnitPlatform()
+    jvmArgs "-Xshare:off"
 }
 
 tasks.named('compileJava') {
@@ -67,7 +112,3 @@ clean {
     delete file("$buildDir/generated")
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-    jvmArgs "-Xshare:off"
-}

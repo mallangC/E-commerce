@@ -1,6 +1,7 @@
 package com.zb.ecommerce.model;
 
 import com.zb.ecommerce.domain.form.ProductAddForm;
+import com.zb.ecommerce.domain.form.ProductUpdateForm;
 import com.zb.ecommerce.domain.type.CategoryType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,7 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Setter
 public class Product extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +25,7 @@ public class Product extends BaseEntity {
   private CategoryType categoryType;
   private String description;
   private Long price;
-  private String image;
+  private String imageUrl;
   @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<ProductDetail> details;
 
@@ -36,7 +36,28 @@ public class Product extends BaseEntity {
             .categoryType(form.getCategory())
             .description(form.getDescription())
             .price(form.getPrice())
-            .image(form.getImage())
+            .imageUrl(form.getImage())
             .build();
+  }
+
+  public void productUpdate(ProductUpdateForm form, boolean isExistName, boolean isExistCode) {
+    if (form.getName() != null && !isExistName) {
+      this.name = form.getName();
+    }
+    if (form.getChangeCode() != null && !isExistCode) {
+      this.code = form.getChangeCode();
+    }
+    if (form.getDescription() != null) {
+      this.description = form.getDescription();
+    }
+    if (form.getPrice() != null) {
+      this.price = form.getPrice();
+    }
+    if (form.getCategoryType() != null) {
+      this.categoryType = form.getCategoryType();
+    }
+    if (form.getImage() != null) {
+      this.imageUrl = form.getImage();
+    }
   }
 }
