@@ -20,10 +20,16 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Clean Gradle Cache and Build
+        run: |
+          ./gradlew --stop
+          rm -rf ~/.gradle/caches/
+          rm -rf build/
+
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: '8.11.1'
+          gradle-version: '8.6'
 
       - name: Build with Gradle
         if: ${{github.event_name == 'push'}}
