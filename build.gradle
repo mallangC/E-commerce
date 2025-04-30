@@ -70,9 +70,10 @@ tasks.register('jacocoTestReports', JacocoReport) {
     reports {
         html.required.set(true)
         xml.required.set(true)
-
+        html.destination file("${buildDir}/reports/jacoco/html")
         xml.destination file("${buildDir}/reports/jacoco/jacocoTestReport.xml")
-        html.destination file("${buildDir}/reports/jacoco/jacoco.html")
+        html.outputLocation.set(file("$buildDir/reports/jacoco/html"))
+        xml.outputLocation.set(file("$buildDir/reports/jacoco/jacocoTestReport.xml"))
 
         def Qdomains = []
         for (qPattern in "**/QA*".."**/QZ*") {
@@ -86,10 +87,16 @@ tasks.register('jacocoTestReports', JacocoReport) {
             }))
         }
     }
+
+    sourceDirectories.from(sourceSets.named("main").get().allSource.srcDirs)
+    classDirectories.from(sourceSets.named("main").get().output.classesDirs)
+    executionData.from(fileTree(project.buildDir) {
+        include("reports/jacoco/test.exec")
+    })
 }
 
 tasks.named('test') {
-    finalizedBy(tasks.named('jacocoTestReports')) // test 태스크 완료 후 jacocoTestReport 실행
+    finalizedBy(tasks.named('jacocoTestReports'))
 }
 
 tasks.named('compileJava') {
