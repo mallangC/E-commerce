@@ -84,12 +84,11 @@ tasks.register('jacocoTestReports', JacocoReport) {
                 '**/QZ*'
         ]
 
-        afterEvaluate {
-            classDirectories.setFrom(files(classDirectories.files.collect {
-                fileTree(dir: it,
-                        exclude: [] + Qdomains)
-            }))
-        }
+        classDirectories.setFrom(files(java.sourceSets.named("main").get().output.classesDirs.files.collect {
+            fileTree(dir: it) {
+                exclude(Qdomains)
+            }
+        }))
     }
 
     sourceDirectories.from(sourceSets.named("main").get().allSource.srcDirs)
