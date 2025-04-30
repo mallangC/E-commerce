@@ -24,11 +24,11 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public Page<ProductDto> searchAll(int page,
-                                    String keyword,
-                                    CategoryType category,
-                                    String sortType,
-                                    boolean asc) {
+  public Page<ProductDto> searchAllProduct(int page,
+                                           String keyword,
+                                           CategoryType category,
+                                           String sortType,
+                                           boolean asc) {
 
     Pageable pageable = PageRequest.of(page, 20);
 
@@ -63,7 +63,7 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
 
 
   @Override
-  public Product searchByCode(String code){
+  public Product searchProductByCode(String code){
     Product searchProduct = queryFactory
             .selectFrom(product)
             .leftJoin(product.details, productDetail).fetchJoin()

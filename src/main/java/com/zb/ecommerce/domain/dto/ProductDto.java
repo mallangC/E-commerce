@@ -31,7 +31,7 @@ public class ProductDto implements Serializable {
             .description(product.getDescription())
             .price(product.getPrice())
             .categoryType(product.getCategoryType())
-            .image(product.getImage())
+            .image(product.getImageUrl())
             .details(product.getDetails().stream().map(ProductDetailDto::from).toList())
             .build();
   }
@@ -43,7 +43,7 @@ public class ProductDto implements Serializable {
             .description(product.getDescription())
             .price(product.getPrice())
             .categoryType(product.getCategoryType())
-            .image(product.getImage())
+            .image(product.getImageUrl())
             .build();
 
   }

@@ -1,7 +1,7 @@
 package com.zb.ecommerce.controller;
 
 import com.zb.ecommerce.domain.dto.CartProductDto;
-import com.zb.ecommerce.domain.dto.PageDto;
+import com.zb.ecommerce.response.PaginatedResponse;
 import com.zb.ecommerce.domain.form.CartAddForm;
 import com.zb.ecommerce.domain.form.CartUpdateForm;
 import com.zb.ecommerce.service.CartService;
@@ -24,7 +24,7 @@ public class CartController {
   }
 
   @GetMapping("/carts")
-  public ResponseEntity<PageDto<CartProductDto>> getCartProducts(@RequestParam int page) {
+  public ResponseEntity<PaginatedResponse<CartProductDto>> getCartProducts(@RequestParam int page) {
     String email = SecurityContextHolder.getContext().getAuthentication().getName();
     return ResponseEntity.ok(cartService.getAllCartProducts(page, email));
   }

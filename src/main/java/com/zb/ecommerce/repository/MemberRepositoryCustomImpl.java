@@ -15,7 +15,7 @@ public class MemberRepositoryCustomImpl implements MemberRepositoryCustom {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public Member searchByEmail(String email) {
+  public Member searchMemberByEmail(String email) {
     Member searchMember = queryFactory.selectFrom(member)
             .leftJoin(member.cart, cartProduct).fetchJoin()
             .leftJoin(cartProduct.product, product).fetchJoin()

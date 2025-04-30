@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.2'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
 }
 
 group = 'com.zb'
@@ -57,6 +58,34 @@ sourceSets {
     named("main") {
         java.srcDirs("src/main/java", "src/main/generated")
     }
+}
+
+tasks.register('jacocoTestReports', JacocoReport) {
+    dependsOn tasks.named('test')
+
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+
+        xml.destination file("${buildDir}/reports/jacoco/jacocoTestReport.xml")
+        html.destination file("${buildDir}/reports/jacoco/jacoco.html")
+
+        def Qdomains = []
+        for (qPattern in "**/QA*".."**/QZ*"){
+            Qdomains.add(qPattern + "*")
+        }
+
+        afterEvaluate {
+            classDirectories.setFrom(files(classDirectories.files.collect {
+                fileTree(dir: it,
+                        exclude: [] + Qdomains)
+            }))
+        }
+    }
+}
+
+tasks.named('test') {
+    finalizedBy(tasks.named('jacocoTestReports')) // test 태스크 완료 후 jacocoTestReport 실행
 }
 
 tasks.named('compileJava') {

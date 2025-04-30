@@ -22,7 +22,7 @@ public class CartProductDto {
             .size(cartProduct.getSize())
             .quantity(cartProduct.getQuantity())
             .price(cartProduct.getProduct().getPrice())
-            .image(cartProduct.getProduct().getImage())
+            .image(cartProduct.getProduct().getImageUrl())
             .build();
   }
 }

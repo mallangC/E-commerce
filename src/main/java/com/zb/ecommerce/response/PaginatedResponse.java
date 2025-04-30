@@ -1,4 +1,4 @@
-package com.zb.ecommerce.domain.dto;
+package com.zb.ecommerce.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,15 +13,15 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PageDto<T> {
+public class PaginatedResponse<T> {
   private List<T> contents;
   private long totalElements;
   private int totalPages;
   private int number;
   private int size;
 
-  public static <T> PageDto<T> from(Page<T> page) {
-    return PageDto.<T>builder()
+  public static <T> PaginatedResponse<T> from(Page<T> page) {
+    return PaginatedResponse.<T>builder()
             .contents(page.getContent())
             .totalElements(page.getTotalElements())
             .totalPages(page.getTotalPages())
@@ -30,8 +30,8 @@ public class PageDto<T> {
             .build();
   }
 
-  public static <T> PageDto<T> empty() {
-    return PageDto.<T>builder()
+  public static <T> PaginatedResponse<T> empty() {
+    return PaginatedResponse.<T>builder()
             .contents(new ArrayList<>())
             .totalElements(0)
             .totalPages(0)

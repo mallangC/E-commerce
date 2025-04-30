@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        name: Set up JDK 17
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Gradle
+        if: ${{github.event_name == 'push'}}
+        run: ./gradlew build -x text
+
+      - name: Test with Gradle
+        run: ./gradlew test
+
+      - name: Upload JaCoCo coverage report
+        uses: codecov/codecov-action@v3
+        if: ${{ success() }}
+        with:
+          files: build/report/jacoco/test/jacocoTestReport.xml
+          flags: unittests
+          name: codecov-unit

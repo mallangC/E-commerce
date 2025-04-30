@@ -8,7 +8,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Setter
 public class CartProduct {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,4 +20,11 @@ public class CartProduct {
   private Product product;
   private String size;
   private Integer quantity;
+
+  public void changeQuantity(Integer quantity) {
+    this.quantity = quantity;
+  }
+  public void addQuantity(Integer quantity) {
+    this.quantity += quantity;
+  }
 }

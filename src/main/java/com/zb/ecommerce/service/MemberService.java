@@ -74,7 +74,7 @@ public class MemberService {
     if (!redisCode.equals(code)) {
       throw new CustomException(NOT_MATCH_VERIFICATION_CODE);
     }
-    member.setIsEmailVerified(true);
+    member.emailVerify();
   }
 
 
@@ -96,10 +96,17 @@ public class MemberService {
 
   @Transactional
   public MemberDto updateMemberDetail(MemberUpdateForm form, String tokenEmail){
-
     Member member = findMemberByEmail(tokenEmail);
-    memberUpdateFromForm(form, member);
-
+    if (!passwordEncoder.matches(form.getCurPassword(), member.getPassword())) {
+      throw new CustomException(NOT_MATCH_PASSWORD);
+    }
+    if (form.getChangePassword() != null){
+      if (form.getCurPassword().equals(form.getChangePassword())) {
+        throw new CustomException(EQUAL_PASSWORD);
+      }
+      member.memberChangePassword(passwordEncoder.encode(form.getChangePassword()));
+    }
+    member.memberUpdate(form);
     return MemberDto.from(member);
   }
 
@@ -115,32 +122,6 @@ public class MemberService {
     memberRepository.deleteByEmail(tokenEmail);
     redisService.deleteRefreshToken(tokenEmail);
     return MemberDto.from(member);
-  }
-
-  private void memberUpdateFromForm(MemberUpdateForm form, Member member){
-
-    if (!passwordEncoder.matches(form.getCurPassword(), member.getPassword())) {
-      throw new CustomException(NOT_MATCH_PASSWORD);
-    }
-    if (form.getChangePassword() != null){
-      if (form.getCurPassword().equals(form.getChangePassword())) {
-        throw new CustomException(EQUAL_PASSWORD);
-      }
-      member.setPassword(passwordEncoder.encode(form.getChangePassword()));
-    }
-
-    if (form.getName() != null){
-      member.setName(form.getName());
-    }
-    if (form.getPhone() != null){
-      member.setPhone(form.getPhone());
-    }
-    if (form.getAddress() != null){
-      member.setAddress(form.getAddress());
-    }
-    if (form.getAddressDetail() != null){
-      member.setAddressDetail(form.getAddressDetail());
-    }
   }
 
   private Member findMemberByEmail(String email){
