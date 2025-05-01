@@ -65,6 +65,7 @@ sourceSets {
 }
 
 jacocoTestReport {
+    dependsOn compileJava
     reports {
         html.required.set(true)
         xml.required.set(true)
