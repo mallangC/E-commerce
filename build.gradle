@@ -64,38 +64,29 @@ sourceSets {
     }
 }
 
-tasks.register('jacocoTestReports', JacocoReport) {
-    dependsOn tasks.named('test')
-
+jacocoTestReport {
     reports {
         html.required.set(true)
         xml.required.set(true)
-        html.destination(layout.buildDirectory.dir("reports/jacoco/html").get().asFile)
-        xml.destination(layout.buildDirectory.dir("reports/jacoco/jacocoTestReport.xml").get().asFile)
-
-        def Qdomains = [
-                '**/QA*', '**/QB*', '**/QC*', '**/QD*', '**/QE*',
-                '**/QF*', '**/QG*', '**/QH*', '**/QI*', '**/QJ*',
-                '**/QK*', '**/QL*', '**/QM*', '**/QN*', '**/QO*',
-                '**/QP*', '**/QQ*', '**/QR*', '**/QS*', '**/QT*',
-                '**/QU*', '**/QV*', '**/QW*', '**/QX*', '**/QY*',
-                '**/QZ*'
-        ]
-
-        classDirectories.setFrom files(java.sourceSets.named("main").get().output.classesDirs.files.collect {
-            fileTree(dir: it, exclude: Qdomains)
-        })
     }
 
-    sourceDirectories.from(sourceSets.named("main").get().allSource.srcDirs)
-    classDirectories.from(sourceSets.named("main").get().output.classesDirs)
-    executionData.from(fileTree(layout.buildDirectory.get().asFile) {
-        include("reports/jacoco/test.exec")
-    })
+    afterEvaluate {
+        classDirectories.setFrom(
+                files(classDirectories.files.collect {
+                    fileTree(dir: it, exclude: [
+                            '**/Q*.class',
+                            '**/com/zb/ecommerce/ECommerceApplication.class'
+                    ])
+                })
+        )
+    }
+
+    finalizedBy 'jacocoTestCoverageVerification'
 }
 
 tasks.named('test', Test) {
     useJUnitPlatform()
+    finalizedBy 'jacocoTestReport'
     jvmArgs "-Xshare:off"
 }
 
@@ -104,6 +95,6 @@ tasks.named('compileJava', JavaCompile) {
 }
 
 clean {
-    delete file("$buildDir/generated")
+    delete file(layout.buildDirectory.dir("generated").get().asFile)
 }
 
