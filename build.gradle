@@ -78,7 +78,12 @@ jacocoTestReport {
                 files(classDirectories.files.collect {
                     fileTree(dir: it, exclude: [
                             '**/Q*.class',
-                            '**/com/zb/ecommerce/ECommerceApplication.class'
+                            '**/com/zb/ecommerce/ECommerceApplication.class',
+                            '**/com/zb/ecommerce/security/*',
+                            '**/com/zb/ecommerce/exception/*',
+                            '**/com/zb/ecommerce/repository/*',
+                            '**/com/zb/ecommerce/config/*',
+                            '**/com/zb/ecommerce/component/*'
                     ])
                 })
         )
