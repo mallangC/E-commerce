@@ -34,7 +34,8 @@ public enum ErrorCode {
 
 
   NOT_FOUND_CART_PRODUCT(HttpStatus.BAD_REQUEST, "카트에 담긴 상품을 찾을 수 없습니다."),
-  
+  CART_DO_NOT_HAVE_PRODUCT(HttpStatus.BAD_REQUEST, "내 카트에 담긴 상품이 아닙니다."),
+
   
   WRONG_FILE(HttpStatus.BAD_REQUEST, "파일을 확인해주세요"),
 

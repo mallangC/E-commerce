@@ -22,8 +22,12 @@ public class S3Service {
   private String bucketName;
 
   public String uploadFile(InputStream inputStream, String fileName, String contentType) throws IOException {
-    String newFileName = UUID.randomUUID() + "-" + fileName;
 
+    if (contentType == null || !contentType.startsWith("image/")) {
+      throw new IllegalArgumentException("이미지 파일만 업로드할 수 있습니다.");
+    }
+
+    String newFileName = UUID.randomUUID() + "-" + fileName;
     PutObjectRequest putObjectRequest = PutObjectRequest.builder()
             .bucket(bucketName)
             .key(keyPrefix + newFileName)

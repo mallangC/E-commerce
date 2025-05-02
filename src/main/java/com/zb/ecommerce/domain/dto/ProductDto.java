@@ -1,7 +1,6 @@
 package com.zb.ecommerce.domain.dto;
 
 import com.zb.ecommerce.domain.type.CategoryType;
-import com.zb.ecommerce.model.Product;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,7 +23,7 @@ public class ProductDto implements Serializable {
   private List<ProductDetailDto> details;
 
 
-  public static ProductDto from(Product product) {
+  public static ProductDto from(com.zb.ecommerce.model.Product product) {
     return ProductDto.builder()
             .name(product.getName())
             .code(product.getCode())
@@ -36,7 +35,7 @@ public class ProductDto implements Serializable {
             .build();
   }
 
-  public static ProductDto fromWithoutDetail(Product product) {
+  public static ProductDto fromWithoutDetail(com.zb.ecommerce.model.Product product) {
     return ProductDto.builder()
             .name(product.getName())
             .code(product.getCode())

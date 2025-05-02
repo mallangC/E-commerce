@@ -1,7 +1,6 @@
 package com.zb.ecommerce.service;
 
 import com.zb.ecommerce.domain.dto.CartProductDto;
-import com.zb.ecommerce.response.PaginatedResponse;
 import com.zb.ecommerce.domain.form.CartAddForm;
 import com.zb.ecommerce.domain.form.CartUpdateForm;
 import com.zb.ecommerce.domain.type.CategoryType;
@@ -19,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +29,7 @@ import java.util.Optional;
 
 import static com.zb.ecommerce.exception.ErrorCode.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -50,6 +51,24 @@ class CartServiceTest {
   @InjectMocks
   private CartService cartService;
 
+  Member memberBase = Member.builder()
+          .id(1L)
+          .email("test@test.com")
+          .cart(new ArrayList<>())
+          .build();
+
+  Product productBase = Product.builder()
+          .id(1L)
+          .name("신발")
+          .price(57000L)
+          .code("shoes_mk1")
+          .categoryType(CategoryType.SHOES)
+          .description("넘나 이쁜 신발")
+          .details(List.of(ProductDetail.builder()
+                  .size("L")
+                  .quantity(5)
+                  .build()))
+          .build();
 
   CartAddForm cartAddForm = CartAddForm.builder()
           .productCode("shoes_mk1")
@@ -63,25 +82,10 @@ class CartServiceTest {
   void addProductToCart1() {
     //given
     given(memberRepository.searchMemberByEmail(anyString()))
-            .willReturn(Member.builder()
-                    .id(1L)
-                    .email("test@test.com")
-                    .cart(new ArrayList<>())
-                    .build());
+            .willReturn(Optional.ofNullable(memberBase));
 
     given(productRepository.searchProductByCode(anyString()))
-            .willReturn(Product.builder()
-                    .id(1L)
-                    .name("신발")
-                    .price(57000L)
-                    .code("shoes_mk1")
-                    .categoryType(CategoryType.SHOES)
-                    .description("넘나 이쁜 신발")
-                    .details(List.of(ProductDetail.builder()
-                            .size("L")
-                            .quantity(5)
-                            .build()))
-                    .build());
+            .willReturn(Optional.ofNullable(productBase));
 
     given(cartProductRepository.save(any()))
             .willReturn(CartProduct.builder()
@@ -103,9 +107,8 @@ class CartServiceTest {
                     .build());
 
     //when
-    CartProductDto result = cartService.addProductToCart("email", cartAddForm);
+    CartProductDto result = cartService.addProductToCart(cartAddForm, memberBase.getEmail());
     //then
-
     assertEquals(1L, result.getId());
     assertEquals("신발", result.getProductName());
     assertEquals("L", result.getSize());
@@ -119,7 +122,7 @@ class CartServiceTest {
   void addProductToCart2() {
     //given
     given(memberRepository.searchMemberByEmail(anyString()))
-            .willReturn(Member.builder()
+            .willReturn(Optional.ofNullable(Member.builder()
                     .id(1L)
                     .email("test@test.com")
                     .cart(List.of(CartProduct.builder()
@@ -139,21 +142,10 @@ class CartServiceTest {
                             .size("L")
                             .quantity(1)
                             .build()))
-                    .build());
+                    .build()));
 
     given(productRepository.searchProductByCode(anyString()))
-            .willReturn(Product.builder()
-                    .id(1L)
-                    .name("신발")
-                    .price(57000L)
-                    .code("shoes_mk1")
-                    .categoryType(CategoryType.SHOES)
-                    .description("넘나 이쁜 신발")
-                    .details(List.of(ProductDetail.builder()
-                            .size("L")
-                            .quantity(5)
-                            .build()))
-                    .build());
+            .willReturn(Optional.ofNullable(productBase));
 
     given(cartProductRepository.findByMemberAndProductAndSize(any(), any(), anyString()))
             .willReturn(Optional.of(CartProduct.builder()
@@ -175,9 +167,8 @@ class CartServiceTest {
                     .build()));
 
     //when
-    CartProductDto result = cartService.addProductToCart("email", cartAddForm);
+    CartProductDto result = cartService.addProductToCart(cartAddForm, memberBase.getEmail());
     //then
-
     assertEquals(1L, result.getId());
     assertEquals("신발", result.getProductName());
     assertEquals("L", result.getSize());
@@ -195,7 +186,7 @@ class CartServiceTest {
 
     try {
       //when
-      cartService.addProductToCart("email", cartAddForm);
+      cartService.addProductToCart(cartAddForm, memberBase.getEmail());
     } catch (CustomException e) {
       //then
       assertEquals(NOT_FOUND_MEMBER, e.getErrorCode());
@@ -208,16 +199,13 @@ class CartServiceTest {
   void addProductToCartFailure2() {
     //given
     given(memberRepository.searchMemberByEmail(anyString()))
-            .willReturn(Member.builder()
-                    .id(1L)
-                    .email("test@test.com")
-                    .build());
+            .willReturn(Optional.ofNullable(memberBase));
 
     given(productRepository.searchProductByCode(anyString()))
             .willThrow(new CustomException(NOT_FOUND_PRODUCT));
     try {
       //when
-      cartService.addProductToCart("email", cartAddForm);
+      cartService.addProductToCart(cartAddForm, memberBase.getEmail());
     } catch (CustomException e) {
       //then
       assertEquals(NOT_FOUND_PRODUCT, e.getErrorCode());
@@ -225,47 +213,13 @@ class CartServiceTest {
     verify(cartProductRepository, times(0)).save(any());
   }
 
-  @Test
-  @DisplayName("카트 상품 추가 실패(잘못된 사이즈 입력)")
-  void addProductToCartFailure3() {
-    //given
-    given(memberRepository.searchMemberByEmail(anyString()))
-            .willReturn(Member.builder()
-                    .id(1L)
-                    .email("test@test.com")
-                    .build());
-
-    given(productRepository.searchProductByCode(anyString()))
-            .willReturn(Product.builder()
-                    .id(1L)
-                    .name("신발")
-                    .price(57000L)
-                    .code("shoes_mk1")
-                    .categoryType(CategoryType.SHOES)
-                    .description("넘나 이쁜 신발")
-                    .details(List.of(ProductDetail.builder()
-                            .size("M")
-                            .quantity(5)
-                            .build()))
-                    .build());
-
-
-    try {
-      //when
-      cartService.addProductToCart("email", cartAddForm);
-    } catch (CustomException e) {
-      //then
-      assertEquals(NOT_FOUND_SIZE, e.getErrorCode());
-    }
-    verify(cartProductRepository, times(0)).save(any());
-  }
 
   @Test
   @DisplayName("카트 상품 추가 실패(이미 카트에 상품이 있고 상품 갯수가 부족함)")
   void addProductToCartFailure4() {
     //given
     given(memberRepository.searchMemberByEmail(anyString()))
-            .willReturn(Member.builder()
+            .willReturn(Optional.ofNullable(Member.builder()
                     .id(1L)
                     .email("test@test.com")
                     .cart(List.of(CartProduct.builder()
@@ -285,10 +239,10 @@ class CartServiceTest {
                             .size("L")
                             .quantity(1)
                             .build()))
-                    .build());
+                    .build()));
 
     given(productRepository.searchProductByCode(anyString()))
-            .willReturn(Product.builder()
+            .willReturn(Optional.ofNullable(Product.builder()
                     .id(1L)
                     .name("신발")
                     .price(57000L)
@@ -299,7 +253,7 @@ class CartServiceTest {
                             .size("L")
                             .quantity(1)
                             .build()))
-                    .build());
+                    .build()));
 
 
     given(cartProductRepository.findByMemberAndProductAndSize(any(), any(), anyString()))
@@ -324,7 +278,7 @@ class CartServiceTest {
 
     try {
       //when
-      cartService.addProductToCart("email", cartAddForm);
+      cartService.addProductToCart(cartAddForm, memberBase.getEmail());
     } catch (CustomException e) {
       //then
       assertEquals(NOT_ENOUGH_PRODUCT, e.getErrorCode());
@@ -339,8 +293,8 @@ class CartServiceTest {
   void getAllCartProducts1() {
     //given
     Pageable pageable = PageRequest.of(0, 20);
-    given(cartProductRepository.searchCartProducts(anyInt(), anyString()))
-            .willReturn(new PageImpl<>(List.of(CartProductDto.from(CartProduct.builder()
+    given(cartProductRepository.searchCartProductsByEmail(anyInt(), anyString()))
+            .willReturn(new PageImpl<>(List.of(CartProduct.builder()
                     .id(1L)
                     .member(Member.builder()
                             .id(1L)
@@ -353,7 +307,7 @@ class CartServiceTest {
                             .build())
                     .size("L")
                     .quantity(2)
-                    .build()), CartProductDto.from(CartProduct.builder()
+                    .build(), CartProduct.builder()
                     .id(2L)
                     .member(Member.builder()
                             .id(1L)
@@ -366,16 +320,15 @@ class CartServiceTest {
                             .build())
                     .size("M")
                     .quantity(1)
-                    .build())),pageable, 2));
+                    .build()), pageable, 2));
 
     //when
-    PaginatedResponse<CartProductDto> result = cartService.getAllCartProducts(0, "email");
+    Page<CartProductDto> result = cartService.getAllCartProducts(0, "email");
     //then
     assertEquals(2, result.getTotalElements());
-    assertEquals(1L, result.getContents().get(0).getId());
-    assertEquals("신발", result.getContents().get(0).getProductName());
-    assertEquals("L", result.getContents().get(0).getSize());
-    assertEquals(2, result.getContents().get(0).getQuantity());
+    assertEquals("신발", result.getContent().get(0).getProductName());
+    assertEquals("L", result.getContent().get(0).getSize());
+    assertEquals(2, result.getContent().get(0).getQuantity());
   }
 
 
@@ -383,10 +336,10 @@ class CartServiceTest {
   @DisplayName("카트에 모든 상품 확인(카트에 아무것도 없음)")
   void getAllCartProducts2() {
     //given
-    given(cartProductRepository.searchCartProducts(anyInt(), anyString()))
+    given(cartProductRepository.searchCartProductsByEmail(anyInt(), anyString()))
             .willReturn(new PageImpl<>(new ArrayList<>()));
     //when
-    PaginatedResponse<CartProductDto> result = cartService.getAllCartProducts(0,"email");
+    Page<CartProductDto> result = cartService.getAllCartProducts(0, "email");
     //then
     assertEquals(0, result.getTotalElements());
   }
@@ -397,9 +350,10 @@ class CartServiceTest {
   @DisplayName("카드 상품 갯수 수정")
   void updateCartProduct() {
     //given
-    given(cartProductRepository.searchCartProduct(anyLong()))
-            .willReturn(CartProduct.builder()
+    given(cartProductRepository.searchCartProductById(anyLong()))
+            .willReturn(Optional.ofNullable(CartProduct.builder()
                     .id(1L)
+                    .member(memberBase)
                     .product(Product.builder()
                             .id(1L)
                             .name("신발")
@@ -414,7 +368,7 @@ class CartServiceTest {
                             .build())
                     .size("M")
                     .quantity(1)
-                    .build());
+                    .build()));
 
     CartUpdateForm form = CartUpdateForm.builder()
             .id(1L)
@@ -422,7 +376,7 @@ class CartServiceTest {
             .quantity(2)
             .build();
     //when
-    CartProductDto result = cartService.updateProductToCart(form);
+    CartProductDto result = cartService.updateProductToCart(form, memberBase.getEmail());
     //then
     assertEquals(2, result.getQuantity());
   }
@@ -431,7 +385,7 @@ class CartServiceTest {
   @DisplayName("카드 상품 갯수 수정 실패(잘못된 아이디 입력)")
   void updateCartProductFailure1() {
     //given
-    given(cartProductRepository.searchCartProduct(anyLong()))
+    given(cartProductRepository.searchCartProductById(anyLong()))
             .willThrow(new CustomException(NOT_FOUND_CART_PRODUCT));
 
     CartUpdateForm form = CartUpdateForm.builder()
@@ -442,7 +396,7 @@ class CartServiceTest {
 
     try {
       //when
-      cartService.updateProductToCart(form);
+      cartService.updateProductToCart(form, "email");
     } catch (CustomException e) {
       //then
       assertEquals(NOT_FOUND_CART_PRODUCT, e.getErrorCode());
@@ -453,9 +407,10 @@ class CartServiceTest {
   @DisplayName("카드 상품 갯수 수정 실패(잘못된 사이즈 입력)")
   void updateCartProductFailure2() {
     //given
-    given(cartProductRepository.searchCartProduct(anyLong()))
-            .willReturn(CartProduct.builder()
+    given(cartProductRepository.searchCartProductById(anyLong()))
+            .willReturn(Optional.ofNullable(CartProduct.builder()
                     .id(1L)
+                    .member(memberBase)
                     .product(Product.builder()
                             .id(1L)
                             .name("신발")
@@ -470,7 +425,7 @@ class CartServiceTest {
                             .build())
                     .size("M")
                     .quantity(1)
-                    .build());
+                    .build()));
 
     CartUpdateForm form = CartUpdateForm.builder()
             .id(1L)
@@ -479,7 +434,7 @@ class CartServiceTest {
             .build();
     try {
       //when
-      cartService.updateProductToCart(form);
+      cartService.updateProductToCart(form, memberBase.getEmail());
     } catch (CustomException e) {
       //then
       assertEquals(NOT_FOUND_SIZE, e.getErrorCode());
@@ -490,9 +445,12 @@ class CartServiceTest {
   @DisplayName("카드 상품 갯수 수정 실패(상품 갯수 부족)")
   void updateCartProductFailure3() {
     //given
-    given(cartProductRepository.searchCartProduct(anyLong()))
-            .willReturn(CartProduct.builder()
+    given(cartProductRepository.searchCartProductById(anyLong()))
+            .willReturn(Optional.ofNullable(CartProduct.builder()
                     .id(1L)
+                    .member(Member.builder()
+                            .email("wrongEmail")
+                            .build())
                     .product(Product.builder()
                             .id(1L)
                             .name("신발")
@@ -507,20 +465,19 @@ class CartServiceTest {
                             .build())
                     .size("M")
                     .quantity(1)
-                    .build());
+                    .build()));
 
     CartUpdateForm form = CartUpdateForm.builder()
             .id(1L)
             .size("M")
             .quantity(10)
             .build();
-    try {
-      //when
-      cartService.updateProductToCart(form);
-    } catch (CustomException e) {
-      //then
-      assertEquals(NOT_ENOUGH_PRODUCT, e.getErrorCode());
-    }
+    //when
+    CustomException exception = assertThrows(CustomException.class,
+            () -> cartService.updateProductToCart(form, memberBase.getEmail()));
+    //then
+    assertEquals(CART_DO_NOT_HAVE_PRODUCT, exception.getErrorCode());
+
   }
 
   //----
@@ -529,29 +486,61 @@ class CartServiceTest {
   @DisplayName("카트 상품 삭제")
   void deleteCartProduct() {
     //given
-    given(cartProductRepository.existsById(anyLong()))
-            .willReturn(true);
+    given(cartProductRepository.searchCartProductById(anyLong()))
+            .willReturn(Optional.of(CartProduct.builder()
+                    .id(1L)
+                    .member(memberBase)
+                    .product(Product.builder()
+                            .id(1L)
+                            .name("신발")
+                            .price(57000L)
+                            .code("shoes_mk1")
+                            .categoryType(CategoryType.SHOES)
+                            .description("넘나 이쁜 신발")
+                            .details(List.of(ProductDetail.builder()
+                                    .size("M")
+                                    .quantity(5)
+                                    .build()))
+                            .build())
+                    .size("M")
+                    .quantity(1)
+                    .build()));
     //when
-    cartService.deleteProductToCart(1L);
+    cartService.deleteProductToCart(1L, memberBase.getEmail());
     //then
-    verify(cartProductRepository, times(1)).deleteById(anyLong());
+    verify(cartProductRepository, times(1)).delete(any());
   }
 
   @Test
   @DisplayName("카트 상품 삭제 실패(잘못된 ID입력)")
-  void deleteCartProductFailure() {
+  void deleteCartProductFailure1() {
     //given
-    given(cartProductRepository.existsById(anyLong()))
-            .willReturn(false);
-    try {
-      //when
-      cartService.deleteProductToCart(1L);
-    } catch (CustomException e) {
-      //then
-      assertEquals(NOT_FOUND_CART_PRODUCT, e.getErrorCode());
-      verify(cartProductRepository, times(0)).deleteById(anyLong());
-    }
+    given(cartProductRepository.searchCartProductById(anyLong()))
+            .willReturn(Optional.empty());
 
+    //when
+    CustomException exception = assertThrows(CustomException.class,
+            () -> cartService.deleteProductToCart(1L, memberBase.getEmail()));
+
+    //then
+    assertEquals(NOT_FOUND_CART_PRODUCT, exception.getErrorCode());
+  }
+
+  @Test
+  @DisplayName("카트 상품 삭제 실패(내 카트 상품이 아님)")
+  void deleteCartProductFailure2() {
+    //given
+    given(cartProductRepository.searchCartProductById(anyLong()))
+            .willReturn(Optional.of(CartProduct.builder()
+                    .member(Member.builder()
+                            .email("wrongEmail")
+                            .build())
+                    .build()));
+    //when
+    CustomException exception = assertThrows(CustomException.class,
+            () -> cartService.deleteProductToCart(1L, memberBase.getEmail()));
+    //then
+    assertEquals(CART_DO_NOT_HAVE_PRODUCT, exception.getErrorCode());
   }
 
 

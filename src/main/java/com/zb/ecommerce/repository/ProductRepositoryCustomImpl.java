@@ -2,9 +2,7 @@ package com.zb.ecommerce.repository;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.zb.ecommerce.domain.dto.ProductDto;
 import com.zb.ecommerce.domain.type.CategoryType;
-import com.zb.ecommerce.exception.CustomException;
 import com.zb.ecommerce.model.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,8 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
-import static com.zb.ecommerce.exception.ErrorCode.NOT_FOUND_PRODUCT;
 import static com.zb.ecommerce.model.QProduct.product;
 import static com.zb.ecommerce.model.QProductDetail.productDetail;
 
@@ -24,11 +22,11 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public Page<ProductDto> searchAllProduct(int page,
-                                           String keyword,
-                                           CategoryType category,
-                                           String sortType,
-                                           boolean asc) {
+  public Page<Product> searchAllProduct(int page,
+                                        String keyword,
+                                        CategoryType category,
+                                        String sortType,
+                                        boolean asc) {
 
     Pageable pageable = PageRequest.of(page, 20);
 
@@ -39,6 +37,18 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
       querySort = product.price.desc();
     } else if (!asc) {
       querySort = product.name.desc();
+    }
+
+    Long total = queryFactory.select(product.count())
+            .from(product)
+            .where(keyword != null && !keyword.isEmpty() ?
+                    product.name.contains(keyword).or(product.description.contains(keyword))
+                    : null)
+            .where(category != null ? product.categoryType.eq(category) : null)
+            .fetchOne();
+
+    if (total == null) {
+      return new PageImpl<>(List.of(), pageable, 0);
     }
 
     List<Product> products = queryFactory.selectFrom(product)
@@ -52,31 +62,18 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
             .offset(pageable.getOffset())
             .fetch();
 
-    long total = products.size();
-
-    List<ProductDto> productDtoList = products.stream()
-            .map(ProductDto::fromWithoutDetail)
-            .toList();
-
-    return new PageImpl<>(productDtoList, pageable, total);
+    return new PageImpl<>(products, pageable, total);
   }
 
 
   @Override
-  public Product searchProductByCode(String code){
-    Product searchProduct = queryFactory
+  public Optional<Product> searchProductByCode(String code) {
+    return Optional.ofNullable(queryFactory
             .selectFrom(product)
             .leftJoin(product.details, productDetail).fetchJoin()
             .where(product.code.eq(code))
-            .fetchOne();
-
-    if (searchProduct == null) {
-      throw new CustomException(NOT_FOUND_PRODUCT);
-    }
-
-    return searchProduct;
+            .fetchOne());
   }
-
 
 
 }
