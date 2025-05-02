@@ -1,11 +1,12 @@
 package com.zb.ecommerce.repository;
 
-import com.zb.ecommerce.domain.dto.CartProductDto;
 import com.zb.ecommerce.model.CartProduct;
 import org.springframework.data.domain.Page;
 
-public interface CartProductRepositoryCustom {
-  CartProduct searchCartProduct(Long id);
+import java.util.Optional;
 
-  Page<CartProductDto> searchCartProducts(int page, String email);
+public interface CartProductRepositoryCustom {
+  Optional<CartProduct> searchCartProductById(Long id);
+
+  Page<CartProduct> searchCartProductsByEmail(int page, String email);
 }

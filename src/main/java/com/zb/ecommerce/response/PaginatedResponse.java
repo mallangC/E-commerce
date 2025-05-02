@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -19,24 +19,18 @@ public class PaginatedResponse<T> {
   private int totalPages;
   private int number;
   private int size;
+  private String message;
+  private HttpStatus status;
 
-  public static <T> PaginatedResponse<T> from(Page<T> page) {
+  public static <T> PaginatedResponse<T> from(Page<T> page, String message, HttpStatus status) {
     return PaginatedResponse.<T>builder()
             .contents(page.getContent())
             .totalElements(page.getTotalElements())
             .totalPages(page.getTotalPages())
             .number(page.getNumber())
             .size(page.getSize())
-            .build();
-  }
-
-  public static <T> PaginatedResponse<T> empty() {
-    return PaginatedResponse.<T>builder()
-            .contents(new ArrayList<>())
-            .totalElements(0)
-            .totalPages(0)
-            .number(0)
-            .size(0)
+            .message(message)
+            .status(status)
             .build();
   }
 }

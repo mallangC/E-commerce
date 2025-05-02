@@ -60,55 +60,49 @@ dependencies {
 
 sourceSets {
     named("main") {
-        java.srcDirs("src/main/java")
+        java.srcDirs("src/main/java", "src/main/generated")
     }
 }
 
-tasks.register('jacocoTestReports', JacocoReport) {
-    dependsOn tasks.named('test')
+jacocoTestReport {
+    dependsOn compileJava
+    dependsOn processResources
 
     reports {
         html.required.set(true)
         xml.required.set(true)
-        html.destination file("${buildDir}/reports/jacoco/html")
-        xml.destination file("${buildDir}/reports/jacoco/jacocoTestReport.xml")
-        html.outputLocation.set(file("$buildDir/reports/jacoco/html"))
-        xml.outputLocation.set(file("$buildDir/reports/jacoco/jacocoTestReport.xml"))
-
-        def Qdomains = [
-                '**/QA*', '**/QB*', '**/QC*', '**/QD*', '**/QE*',
-                '**/QF*', '**/QG*', '**/QH*', '**/QI*', '**/QJ*',
-                '**/QK*', '**/QL*', '**/QM*', '**/QN*', '**/QO*',
-                '**/QP*', '**/QQ*', '**/QR*', '**/QS*', '**/QT*',
-                '**/QU*', '**/QV*', '**/QW*', '**/QX*', '**/QY*',
-                '**/QZ*'
-        ]
-
-        classDirectories.setFrom(files(java.sourceSets.named("main").get().output.classesDirs.files.collect {
-            fileTree(dir: it) {
-                exclude(Qdomains)
-            }
-        }))
     }
 
-    sourceDirectories.from(sourceSets.named("main").get().allSource.srcDirs)
-    classDirectories.from(sourceSets.named("main").get().output.classesDirs)
-    executionData.from(fileTree(project.buildDir) {
-        include("reports/jacoco/test.exec")
-    })
+    afterEvaluate {
+        classDirectories.setFrom(
+                files(classDirectories.files.collect {
+                    fileTree(dir: it, exclude: [
+                            '**/Q*.class',
+                            '**/com/zb/ecommerce/ECommerceApplication.class',
+                            '**/com/zb/ecommerce/security/*',
+                            '**/com/zb/ecommerce/exception/*',
+                            '**/com/zb/ecommerce/repository/*',
+                            '**/com/zb/ecommerce/config/*',
+                            '**/com/zb/ecommerce/component/*'
+                    ])
+                })
+        )
+    }
+
+    finalizedBy 'jacocoTestCoverageVerification'
 }
 
-tasks.named('test') {
-    finalizedBy(tasks.named('jacocoTestReports'))
+tasks.named('test', Test) {
     useJUnitPlatform()
+    finalizedBy 'jacocoTestReport'
     jvmArgs "-Xshare:off"
 }
 
-tasks.named('compileJava') {
-    options.annotationProcessorGeneratedSourcesDirectory = file("$buildDir/generated")
+tasks.named('compileJava', JavaCompile) {
+    options.generatedSourceOutputDirectory.set(layout.buildDirectory.dir("generated").get().asFile)
 }
 
 clean {
-    delete file("$buildDir/generated")
+    delete file(layout.buildDirectory.dir("generated").get().asFile)
 }
 

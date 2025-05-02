@@ -2,7 +2,9 @@ package com.zb.ecommerce.repository;
 
 import com.zb.ecommerce.model.Member;
 
+import java.util.Optional;
+
 public interface MemberRepositoryCustom {
 
-  Member searchMemberByEmail(String email);
+  Optional<Member> searchMemberByEmail(String email);
 }

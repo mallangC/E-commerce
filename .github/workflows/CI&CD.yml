@@ -38,10 +38,21 @@ jobs:
       - name: Test with Gradle
         run: ./gradlew test
 
+      - name: Generate JaCoCo Report
+        run: ./gradlew jacocoTestReport
+
+      - name: JaCoCo Report to PR
+        uses: madrapps/jacoco-report@v1.7.1
+        with:
+          paths: ${{ github.workspace }}/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: 'Code Coverage'
+          update-comment: true
+
       - name: Upload JaCoCo coverage report
         uses: codecov/codecov-action@v3
         if: ${{ success() }}
         with:
-          files: build/report/jacoco/test/jacocoTestReport.xml
+          files: build/reports/jacoco/test/jacocoTestReport.xml
           flags: unittests
           name: codecov-unit
